@@ -303,16 +303,6 @@ class CustomSVMDetector:
 
 
 class ImprovedHOGDetector:
-    """
-    Enhanced HOG detector with dual-pass detection and improved filtering
-
-    Based on Dalal & Triggs (2005) HOG features with improvements:
-    - Smart multi-scale pyramid
-    - Aspect ratio-aware NMS
-    - Dual-pass detection (strong + weak for better recall)
-    - Area-based density estimation
-    """
-
     BASE_WIDTH = GlobalDefaults.BASE_WIDTH
     BASE_HEIGHT = GlobalDefaults.BASE_HEIGHT
     ASPECT_RATIO = GlobalDefaults.ASPECT_RATIO
