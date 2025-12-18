@@ -1063,7 +1063,7 @@ def main():
         st.markdown("---")
         st.markdown(
             """
-        ###How to Use:
+        ### How to Use:
         1. **Upload** an image with people
         2. **Adjust** detection parameters in the sidebar
         3. **View** results with color-coded bounding boxes:
@@ -1072,7 +1072,7 @@ def main():
            - 🟠 **Orange**: Low confidence (<0.8)
         4. **Download** the annotated image
         
-        ###What You'll Get:
+        ### What You'll Get:
         - People count
         - Crowd density level
         - Area density ratio
