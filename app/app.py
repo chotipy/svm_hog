@@ -47,7 +47,7 @@ MODEL_CONFIGS = {
     ),
     ModelType.CUSTOM: ModelConfig(
         name="Custom Trained SVM",
-        model_path=DEFAULT_CUSTOM_MODEL_DIR,  # was "./models"
+        model_path=DEFAULT_CUSTOM_MODEL_DIR,
         model_type="custom",
         default_hit_threshold=0.3,
         default_nms=0.15,
@@ -548,16 +548,16 @@ class UnifiedHOGDetector:
         boxes: List[List[float]],
         weights: List[float],
         stats: Dict[str, any],
-        theme: str = "dark",
+        theme: str = "light",
     ) -> np.ndarray:
         result = image_bgr.copy()
 
-        if theme == "dark":
-            text_color = (255, 255, 255)
-            text_bg = (30, 30, 30)
-        else:
+        if theme == "light":
             text_color = (0, 0, 0)
             text_bg = (240, 240, 240)
+        else:
+            text_color = (255, 255, 255)
+            text_bg = (30, 30, 30)
 
         for box, weight in zip(boxes, weights):
             x, y, w, h = [int(v) for v in box]
@@ -616,7 +616,76 @@ def estimate_crowd_density(
 
 
 def apply_theme(theme: str):
-    if theme == "Dark":
+    if theme == "Light":
+        st.markdown(
+            """
+        <style>
+        :root {
+            --bg-main: #faf3f7;
+            --bg-soft: #f3e7ee;
+            --sidebar: #f6dde9;
+
+            --text-primary: #3b1f2b;
+            --text-secondary: #7a4a63;
+
+            --accent: #c45aa3;
+            --accent-soft: #d78ab6;
+
+            --border: rgba(196,90,163,0.25);
+        }
+
+        .stApp {
+            background: linear-gradient(135deg, var(--bg-main), var(--bg-soft));
+            color: var(--text-primary) !important;
+        }
+
+        [data-testid="stSidebar"] {
+            background: linear-gradient(180deg, var(--sidebar), #f1d4e3) !important;
+            border-right: 1px solid var(--border);
+        }
+
+        h1, h2, h3 {
+            color: var(--text-primary) !important;
+            font-weight: 800;
+        }
+
+        .stMarkdown, label {
+            color: var(--text-secondary) !important;
+        }
+
+        .stButton > button {
+            background: linear-gradient(135deg,
+                var(--accent),
+                var(--accent-soft));
+            color: white;
+            border-radius: 14px;
+            font-weight: 700;
+            box-shadow: 0 6px 18px rgba(196,90,163,0.35);
+            transition: all 0.3s ease;
+        }
+
+        .stButton > button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(196,90,163,0.55);
+        }
+
+        div[data-testid="metric-container"] {
+            background: white;
+            border-left: 5px solid var(--accent);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 14px rgba(196,90,163,0.18);
+        }
+
+        div[data-testid="metric-container"] label {
+            color: var(--accent) !important;
+            font-weight: 700;
+        }
+        </style>
+        """,
+            unsafe_allow_html=True,
+        )
+    else:
         st.markdown(
             """
         <style>
@@ -705,75 +774,6 @@ def apply_theme(theme: str):
         """,
             unsafe_allow_html=True,
         )
-    else:
-        st.markdown(
-            """
-        <style>
-        :root {
-            --bg-main: #faf3f7;
-            --bg-soft: #f3e7ee;
-            --sidebar: #f6dde9;
-
-            --text-primary: #3b1f2b;
-            --text-secondary: #7a4a63;
-
-            --accent: #c45aa3;
-            --accent-soft: #d78ab6;
-
-            --border: rgba(196,90,163,0.25);
-        }
-
-        .stApp {
-            background: linear-gradient(135deg, var(--bg-main), var(--bg-soft));
-            color: var(--text-primary) !important;
-        }
-
-        [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, var(--sidebar), #f1d4e3) !important;
-            border-right: 1px solid var(--border);
-        }
-
-        h1, h2, h3 {
-            color: var(--text-primary) !important;
-            font-weight: 800;
-        }
-
-        .stMarkdown, label {
-            color: var(--text-secondary) !important;
-        }
-
-        .stButton > button {
-            background: linear-gradient(135deg,
-                var(--accent),
-                var(--accent-soft));
-            color: white;
-            border-radius: 14px;
-            font-weight: 700;
-            box-shadow: 0 6px 18px rgba(196,90,163,0.35);
-            transition: all 0.3s ease;
-        }
-
-        .stButton > button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 26px rgba(196,90,163,0.55);
-        }
-
-        div[data-testid="metric-container"] {
-            background: white;
-            border-left: 5px solid var(--accent);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 14px rgba(196,90,163,0.18);
-        }
-
-        div[data-testid="metric-container"] label {
-            color: var(--accent) !important;
-            font-weight: 700;
-        }
-        </style>
-        """,
-            unsafe_allow_html=True,
-        )
 
 
 def main():
@@ -786,7 +786,7 @@ def main():
 
     st.sidebar.header("Configuration")
 
-    theme = st.sidebar.radio("Theme", ["Light", "Dark"], index=1)
+    theme = st.sidebar.radio("Theme", ["Light", "Dark"], index=0)
     apply_theme(theme)
 
     st.sidebar.subheader("Model Selection")
