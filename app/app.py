@@ -562,11 +562,11 @@ def estimate_crowd_density(
     total_person_area = sum(float(bw * bh) for _, _, bw, bh in boxes)
     density_ratio = total_person_area / (image_area + 1e-9)
 
-    if density_ratio < 0.02:
+    if density_ratio < 0.05:
         level = "Low"
-    elif density_ratio < 0.05:
-        level = "Medium"
     elif density_ratio < 0.08:
+        level = "Medium"
+    elif density_ratio < 0.1:
         level = "High"
     else:
         level = "Very High"
