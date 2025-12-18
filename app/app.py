@@ -985,84 +985,102 @@ def main():
         brightness, contrast, sharpen = 1.0, 1.0, False
 
     # Core Detection Parameters
-    st.sidebar.subheader("🎯 Core Detection")
 
-    win_stride = st.sidebar.slider(
+
+st.sidebar.subheader("Core Detection")
+
+
+def safe_slider(label, min_v, max_v, default, step, key, **kwargs):
+    # Reset kalau ada value lama yg out of range
+    if key in st.session_state:
+        v = st.session_state[key]
+        if v < min_v or v > max_v:
+            st.session_state[key] = default
+
+    return st.sidebar.slider(label, min_v, max_v, default, step, key=key, **kwargs)
+
+    win_stride = safe_slider(
         "Window Stride",
         2,
         16,
         int(model_config.win_stride),
         2,
-        help="Step size for sliding window. Lower = more thorough but slower. Default: 4",
+        key="win_stride",
+        help="Step size for sliding window. Lower = more thorough but slower.",
     )
 
-    padding = st.sidebar.slider(
+    padding = safe_slider(
         "Padding",
         0,
         32,
         int(model_config.padding),
         4,
-        help="Extra padding around detection window. Default: 8",
+        key="padding",
+        help="Extra padding around detection window.",
     )
 
-    hit_threshold = st.sidebar.slider(
+    hit_threshold = safe_slider(
         "Hit Threshold",
         0.0,
         2.0,
         float(model_config.default_hit_threshold),
         0.05,
-        help="Initial detection confidence threshold. Lower = more detections (may include false positives). Recommended: 0.5-0.7",
+        key="hit_threshold",
+        help="Initial detection confidence threshold. Lower = more detections (more false positives).",
     )
 
-    min_final_score = st.sidebar.slider(
+    min_final_score = safe_slider(
         "Min Final Score",
         0.0,
         2.0,
         float(model_config.default_min_final_score),
         0.05,
-        help="Final confidence cutoff after NMS. Only detections above this are kept. Recommended: 0.6",
+        key="min_final_score",
+        help="Final confidence cutoff after NMS.",
     )
 
-    # Multi-Scale Settings
     st.sidebar.subheader("📏 Multi-Scale Detection")
 
-    min_person_px = st.sidebar.slider(
+    min_person_px = safe_slider(
         "Min Person Height (px)",
         20,
         120,
         int(model_config.min_person_px),
         5,
-        help="Minimum expected person height in pixels. For distant people, use lower values. Default: 40",
+        key="min_person_px",
+        help="Minimum expected person height in pixels.",
     )
 
-    max_person_px = st.sidebar.slider(
+    max_person_px = safe_slider(
         "Max Person Height (px)",
         80,
         500,
         int(model_config.max_person_px),
         10,
-        help="Maximum expected person height in pixels. For close-up people, use higher values. Default: 220",
+        key="max_person_px",
+        help="Maximum expected person height in pixels.",
     )
 
-    num_scales = st.sidebar.slider(
+    num_scales = safe_slider(
         "Number of Scales",
         4,
         15,
         int(model_config.num_scales),
         1,
-        help="How many scales to test between min and max. More = thorough but slower. Default: 6",
+        key="num_scales",
+        help="How many scales to test between min and max.",
     )
 
-    # Post-Processing
     st.sidebar.subheader("Post-Processing")
 
-    nms_threshold = st.sidebar.slider(
+    nms_threshold = safe_slider(
         "NMS Threshold",
         0.05,
         0.6,
         float(model_config.default_nms),
         0.01,
-        help="Non-Maximum Suppression overlap threshold. Lower = less overlap allowed.",
+        key="nms_threshold",
+        help="Non-Maximum Suppression overlap threshold.",
     )
 
     # File Upload
