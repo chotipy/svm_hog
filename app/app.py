@@ -784,7 +784,7 @@ def main():
         **Current Model:** {model_config.name}
         
         **OpenCV HOG Mode:**
-        - Pre-trained on INRIA Person Dataset
+        - Pre-trained on INRIA Person Dataset -> benchmark
         - Fast and reliable for standard scenes
         - Adjustable detection parameters
         
