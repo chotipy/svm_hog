@@ -805,12 +805,8 @@ def main():
         - **Hit Threshold**: `0.5 – 0.7`
         - **Min Final Score**: `0.6`
         - **NMS Threshold**: `0.15 – 0.25`
-        - **Weak Pass Strength**: `0.4 – 0.6`
-        - **Window Stride**: `4`
-        - **Padding**: `8`
         - **Min Person Height**: `40 px`
         - **Max Person Height**: `220 px`
-        - **Number of Scales**: `6`
         - **Preprocessing**: **ENABLED**
         - Brightness: `1.1`
         - Contrast: `1.2`
@@ -830,24 +826,12 @@ def main():
 
         ---
 
-        ### Dense Crowd (Padat)
+        ### Dense Crowd
 
         Untuk kerumunan rapat dengan overlap tinggi.
 
-        - **NMS Threshold**: `0.10 – 0.15` (lebih ketat)
-        - **Weak Pass Strength**: `0.3 – 0.5`
-        - **Number of Scales**: `8 – 12`
+        - **NMS Threshold**: `0.10 – 0.15`
         - **Min Box Area**: `800 – 1200`
-
-        ---
-
-        ### Fast Mode (Kecepatan)
-
-        Untuk real-time / device terbatas.
-
-        - **Window Stride**: `8 – 12`
-        - **Number of Scales**: `4 – 5`
-        - **Padding**: `4 – 8`
 
         ---
 
