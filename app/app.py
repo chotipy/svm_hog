@@ -37,35 +37,34 @@ class ModelConfig:
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_CUSTOM_MODEL_DIR = os.path.join(BASE_DIR, "models")
 
-
 MODEL_CONFIGS = {
     ModelType.STANDARD: ModelConfig(
         name="OpenCV HOG",
         model_path="default",
         model_type="opencv",
-        default_hit_threshold=0.0,
-        default_min_final_score=0.3,
-        default_nms=0.3,
-        default_weak_scale=0.7,
-        win_stride=8,
-        padding=8,
-        num_scales=8,
-        min_person_px=40,
-        max_person_px=200,
+        default_hit_threshold=0,
+        default_min_final_score=0,
+        default_nms=0,
+        default_weak_scale=0,
+        win_stride=0,
+        padding=0,
+        num_scales=0,
+        min_person_px=0,
+        max_person_px=0,
     ),
     ModelType.CUSTOM: ModelConfig(
         name="Custom Trained SVM",
         model_path=DEFAULT_CUSTOM_MODEL_DIR,
         model_type="custom",
-        default_hit_threshold=0.3,
-        default_min_final_score=0.3,
-        default_nms=0.15,
-        default_weak_scale=0.4,
-        win_stride=4,
-        padding=8,
-        num_scales=6,
-        min_person_px=40,
-        max_person_px=220,
+        default_hit_threshold=0.0,
+        default_min_final_score=0.0,
+        default_nms=0,
+        default_weak_scale=0,
+        win_stride=0,
+        padding=0,
+        num_scales=0,
+        min_person_px=0,
+        max_person_px=0,
     ),
 }
 
