@@ -743,7 +743,7 @@ def main():
     st.title("Crowd Detector")
     st.markdown("**Multi-Model Support: OpenCV HOG & Custom Trained SVM**")
 
-    st.sidebar.header("⚙️ Configuration")
+    st.sidebar.header("Configuration")
 
     theme = st.sidebar.radio("Theme", ["Light", "Dark"], index=0)
     apply_theme(theme)
@@ -808,7 +808,7 @@ def main():
         brightness, contrast, blur_val, sharpen = 1.0, 1.0, 0, False
 
     # Detection Parameters
-    st.sidebar.subheader("🎚️ Detection Parameters")
+    st.sidebar.subheader("Detection Parameters")
 
     st.sidebar.markdown("**Scale Range**")
     min_person_px = st.sidebar.slider(
@@ -844,7 +844,7 @@ def main():
         0.6,
         model_config.default_nms,
         0.05,
-        help="Non-Maximum Suppression -> Higher = less overlap removal",
+        help="Higher = more bounding box",
     )
 
     # File uploader
@@ -948,7 +948,7 @@ def main():
                 with col_b:
                     st.text(f"Conf: {weight:.2f}")
     else:
-        st.warning("⚠️ No people detected. Try adjusting the detection parameters.")
+        st.warning("No people detected. Try adjusting the detection parameters.")
 
     # Download button
     st.markdown("---")
