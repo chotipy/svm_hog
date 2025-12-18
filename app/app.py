@@ -969,23 +969,30 @@ def main():
         help="Extra padding around detection window. Default: 8",
     )
 
-    hit_threshold = st.sidebar.slider(
-        "Hit Threshold",
-        0.0,
-        2.0,
-        model_config.default_hit_threshold,
-        0.05,
-        help="Initial detection confidence threshold. Lower = more detections (may include false positives). Recommended: 0.5-0.7",
-    )
+    is_custom = selected_model == ModelType.CUSTOM
 
-    min_final_score = st.sidebar.slider(
-        "Min Final Score",
-        0.0,
-        2.0,
-        model_config.default_min_final_score,
-        0.05,
-        help="Final confidence cutoff after NMS. Only detections above this are kept. Recommended: 0.6",
-    )
+    if is_custom:
+        hit_threshold = model_config.default_hit_threshold
+    else:
+        hit_threshold = st.sidebar.slider(
+            "Hit Threshold",
+            -2.0,
+            1.0,
+            float(model_config.default_hit_threshold),
+            0.05,
+            help="Lower = more detections",
+        )
+
+    if is_custom:
+        min_final_score = model_config.default_hit_threshold
+    else:
+        min_final_score = st.sidebar.slider(
+            "Min Final Score",
+            -2.0,
+            2.0,
+            0.0,
+            0.05,
+        )
 
     # Multi-Scale Settings
     st.sidebar.subheader("📏 Multi-Scale Detection")
