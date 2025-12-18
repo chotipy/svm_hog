@@ -895,10 +895,10 @@ def main():
 
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("📷 Original Image")
+        st.subheader("Original Image")
         st.image(pil_img, use_container_width=True)
 
-    with st.spinner("🔍 Detecting people..."):
+    with st.spinner("Detecting people..."):
         boxes, weights = detector.detect_triple_pass(
             image_bgr, detection_params, preprocessing_params
         )
@@ -916,12 +916,12 @@ def main():
         result_rgb = cv2.cvtColor(result_bgr, cv2.COLOR_BGR2RGB)
 
     with col2:
-        st.subheader("✨ Detection Results")
+        st.subheader("Detection Results")
         st.image(result_rgb, use_container_width=True)
 
     # Metrics
     st.markdown("---")
-    st.subheader("📊 Detection Statistics")
+    st.subheader("Detection Statistics")
 
     col3, col4, col5, col6 = st.columns(4)
 
