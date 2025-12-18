@@ -33,38 +33,38 @@ class ModelConfig:
     max_person_px: int
 
 
-# Safer model dir (relative to this script, not process cwd)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_CUSTOM_MODEL_DIR = os.path.join(BASE_DIR, "models")
+
 
 MODEL_CONFIGS = {
     ModelType.STANDARD: ModelConfig(
         name="OpenCV HOG",
         model_path="default",
         model_type="opencv",
-        default_hit_threshold=0,
-        default_min_final_score=0,
-        default_nms=0,
-        default_weak_scale=0,
-        win_stride=0,
-        padding=0,
-        num_scales=0,
-        min_person_px=0,
-        max_person_px=0,
+        default_hit_threshold=0.0,
+        default_min_final_score=0.3,
+        default_nms=0.3,
+        default_weak_scale=0.7,
+        win_stride=8,
+        padding=8,
+        num_scales=8,
+        min_person_px=40,
+        max_person_px=200,
     ),
     ModelType.CUSTOM: ModelConfig(
         name="Custom Trained SVM",
         model_path=DEFAULT_CUSTOM_MODEL_DIR,
         model_type="custom",
-        default_hit_threshold=0.0,
-        default_min_final_score=0.0,
-        default_nms=0,
-        default_weak_scale=0,
-        win_stride=0,
-        padding=0,
-        num_scales=0,
-        min_person_px=0,
-        max_person_px=0,
+        default_hit_threshold=0.3,
+        default_min_final_score=0.3,
+        default_nms=0.15,
+        default_weak_scale=0.4,
+        win_stride=4,
+        padding=8,
+        num_scales=6,
+        min_person_px=40,
+        max_person_px=220,
     ),
 }
 
@@ -303,9 +303,19 @@ class CustomSVMDetector:
 
 
 class ImprovedHOGDetector:
+    """
+    Enhanced HOG detector with dual-pass detection and improved filtering
+
+    Based on Dalal & Triggs (2005) HOG features with improvements:
+    - Smart multi-scale pyramid
+    - Aspect ratio-aware NMS
+    - Dual-pass detection (strong + weak for better recall)
+    - Area-based density estimation
+    """
+
     BASE_WIDTH = GlobalDefaults.BASE_WIDTH
     BASE_HEIGHT = GlobalDefaults.BASE_HEIGHT
-    ASPECT_RATIO = GlobalDefaults.BASE_WIDTH / GlobalDefaults.BASE_HEIGHT
+    ASPECT_RATIO = GlobalDefaults.ASPECT_RATIO
 
     def __init__(self, model_config: ModelConfig):
         self.config = model_config
@@ -597,6 +607,14 @@ class ImprovedHOGDetector:
         stats: Dict[str, any],
         theme: str = "light",
     ) -> np.ndarray:
+        """
+        Visualize detection results with color-coded bounding boxes
+
+        Colors:
+        - Green: High confidence (>1.5)
+        - Yellow: Medium confidence (0.8-1.5)
+        - Orange: Low confidence (<0.8)
+        """
         result = image_bgr.copy()
 
         if theme == "light":
@@ -647,7 +665,9 @@ class ImprovedHOGDetector:
 def estimate_crowd_density(
     boxes: List[List[float]], image_shape: Tuple[int, ...]
 ) -> Tuple[float, str]:
-    # Estimate crowd density based on total person area coverage
+    """
+    Estimate crowd density based on total person area coverage
+    """
     h, w = image_shape[:2]
     image_area = float(w * h)
     total_person_area = sum(float(bw * bh) for _, _, bw, bh in boxes)
@@ -835,7 +855,6 @@ def main():
     st.markdown("**Dual-Pass HOG Detection with Area-Based Density Estimation**")
 
     st.sidebar.header("Configuration")
-
     theme = st.sidebar.radio("Theme", ["Light", "Dark"], index=0)
     apply_theme(theme)
 
@@ -864,7 +883,7 @@ def main():
                 st.session_state["current_model"] = selected_model
                 st.sidebar.success(f"{model_config.name} loaded!")
         except Exception as e:
-            st.sidebar.error(f"❌ Failed to load model: {str(e)}")
+            st.sidebar.error(f"Failed to load model: {str(e)}")
             return
 
     detector = st.session_state["detector"]
@@ -955,7 +974,7 @@ def main():
         "Window Stride",
         2,
         16,
-        model_config.win_stride,
+        int(model_config.win_stride),
         2,
         help="Step size for sliding window. Lower = more thorough but slower. Default: 4",
     )
@@ -964,44 +983,37 @@ def main():
         "Padding",
         0,
         32,
-        model_config.padding,
+        int(model_config.padding),
         4,
         help="Extra padding around detection window. Default: 8",
     )
 
-    is_custom = selected_model == ModelType.CUSTOM
+    hit_threshold = st.sidebar.slider(
+        "Hit Threshold",
+        0.0,
+        2.0,
+        float(model_config.default_hit_threshold),
+        0.05,
+        help="Initial detection confidence threshold. Lower = more detections (may include false positives). Recommended: 0.5-0.7",
+    )
 
-    if is_custom:
-        hit_threshold = model_config.default_hit_threshold
-    else:
-        hit_threshold = st.sidebar.slider(
-            "Hit Threshold",
-            -2.0,
-            1.0,
-            float(model_config.default_hit_threshold),
-            0.05,
-            help="Lower = more detections",
-        )
-
-    if is_custom:
-        min_final_score = model_config.default_hit_threshold
-    else:
-        min_final_score = st.sidebar.slider(
-            "Min Final Score",
-            -2.0,
-            2.0,
-            0.0,
-            0.05,
-        )
+    min_final_score = st.sidebar.slider(
+        "Min Final Score",
+        0.0,
+        2.0,
+        float(model_config.default_min_final_score),
+        0.05,
+        help="Final confidence cutoff after NMS. Only detections above this are kept. Recommended: 0.6",
+    )
 
     # Multi-Scale Settings
-    st.sidebar.subheader("📏 Multi-Scale Detection")
+    st.sidebar.subheader("Multi-Scale Detection")
 
     min_person_px = st.sidebar.slider(
         "Min Person Height (px)",
         20,
         120,
-        model_config.min_person_px,
+        int(model_config.min_person_px),
         5,
         help="Minimum expected person height in pixels. For distant people, use lower values. Default: 40",
     )
@@ -1010,7 +1022,7 @@ def main():
         "Max Person Height (px)",
         80,
         500,
-        model_config.max_person_px,
+        int(model_config.max_person_px),
         10,
         help="Maximum expected person height in pixels. For close-up people, use higher values. Default: 220",
     )
@@ -1019,7 +1031,7 @@ def main():
         "Number of Scales",
         4,
         15,
-        model_config.num_scales,
+        int(model_config.num_scales),
         1,
         help="How many scales to test between min and max. More = thorough but slower. Default: 6",
     )
@@ -1031,24 +1043,24 @@ def main():
         "NMS Threshold",
         0.05,
         0.6,
-        model_config.default_nms,
+        float(model_config.default_nms),
         0.01,
         help="Non-Maximum Suppression overlap threshold. Lower = less overlap allowed.",
     )
 
     # File Upload
     uploaded_file = st.file_uploader(
-        "Upload Your Image",
+        "📤 Upload Your Image",
         type=["png", "jpg", "jpeg"],
         help="Upload an image containing people to detect",
     )
 
     if uploaded_file is None:
-        st.info(" Upload an image to start crowd detection")
+        st.info("👆 Upload an image to start crowd detection")
         st.markdown("---")
         st.markdown(
             """
-        ### How to Use:
+        ### 🚀 How to Use:
         1. **Upload** an image with people
         2. **Adjust** detection parameters in the sidebar
         3. **View** results with color-coded bounding boxes:
@@ -1057,7 +1069,7 @@ def main():
            - 🟠 **Orange**: Low confidence (<0.8)
         4. **Download** the annotated image
         
-        ### What You'll Get:
+        ### 📊 What You'll Get:
         - People count
         - Crowd density level
         - Area density ratio
@@ -1096,11 +1108,11 @@ def main():
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("Original Image")
+        st.subheader("📷 Original Image")
         st.image(pil_img, use_container_width=True)
 
     # Run detection
-    with st.spinner("Detecting people..."):
+    with st.spinner("🔍 Detecting people (dual-pass strategy)..."):
         boxes, weights = detector.detect_dual_pass(
             image_bgr, detection_params, preprocessing_params
         )
@@ -1164,7 +1176,7 @@ def main():
                     else:
                         st.markdown(f"🟠 **{weight:.2f}**")
     else:
-        st.warning("⚠️ No people detected. Try adjusting the parameters:")
+        st.warning("No people detected. Try adjusting the parameters:")
         st.markdown(
             """
         - **Lower Hit Threshold** (e.g., 0.3-0.5)
@@ -1180,7 +1192,7 @@ def main():
     buf = io.BytesIO()
     Image.fromarray(result_rgb).save(buf, format="PNG")
     st.download_button(
-        "⬇️ Download Annotated Image",
+        "Download Annotated Image",
         buf.getvalue(),
         f"crowd_detection_{model_config.name.lower().replace(' ', '_')}.png",
         "image/png",
