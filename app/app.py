@@ -1042,7 +1042,7 @@ def main():
         st.markdown("---")
         st.markdown(
             """
-        ### 🚀 How to Use:
+        ### How to Use:
         1. **Upload** an image with people
         2. **Adjust** detection parameters in the sidebar
         3. **View** results with color-coded bounding boxes:
