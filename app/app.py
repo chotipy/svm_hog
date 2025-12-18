@@ -36,7 +36,6 @@ class ModelConfig:
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_CUSTOM_MODEL_DIR = os.path.join(BASE_DIR, "models")
 
-
 MODEL_CONFIGS = {
     ModelType.STANDARD: ModelConfig(
         name="OpenCV HOG",
@@ -118,7 +117,7 @@ class DetectionParams:
 class CustomSVMDetector:
     def __init__(self, model_dir: str):
         model_dir = os.path.abspath(model_dir)
-        print(f"Loading custom detector from: {model_dir}")
+        print(f"📂 Loading custom detector from: {model_dir}")
 
         classifier_path = os.path.join(model_dir, "body_detector_svm_optimized.pkl")
         scaler_path = os.path.join(model_dir, "feature_scaler_optimized.pkl")
@@ -154,7 +153,9 @@ class CustomSVMDetector:
         self.min_aspect_ratio = params["min_aspect_ratio"]
         self.max_aspect_ratio = params["max_aspect_ratio"]
 
-        print(f"Custom SVM loaded successfully (v{config.get('version', 'unknown')})")
+        print(
+            f"✅ Custom SVM loaded successfully (v{config.get('version', 'unknown')})"
+        )
 
     def detect_multiscale(
         self, image: np.ndarray
@@ -326,7 +327,7 @@ class ImprovedHOGDetector:
             self.hog = cv2.HOGDescriptor()
             self.hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
             self.custom_detector = None
-            print("OpenCV HOG detector loaded")
+            print("✅ OpenCV HOG detector loaded")
             print(f"  Base window: {self.BASE_WIDTH}×{self.BASE_HEIGHT}")
             print(f"  Target aspect ratio: {self.ASPECT_RATIO:.2f}")
 
@@ -335,7 +336,7 @@ class ImprovedHOGDetector:
                 self.custom_detector = CustomSVMDetector(model_config.model_path)
                 self.hog = None
             except Exception as e:
-                print(f"Failed to load custom model: {e}")
+                print(f"⚠️ Failed to load custom model: {e}")
                 print("  Falling back to OpenCV HOG...")
                 self.hog = cv2.HOGDescriptor()
                 self.hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
@@ -405,8 +406,17 @@ class ImprovedHOGDetector:
         all_boxes = []
         all_weights = []
 
-        hit_threshold = params.hit_threshold * scale_factor
+        # Apply scale_factor to threshold (but keep minimum at original threshold)
+        hit_threshold = (
+            params.hit_threshold * scale_factor
+            if scale_factor == 1.0
+            else params.hit_threshold * scale_factor
+        )
         scales = self._calculate_scales(params)
+
+        print(
+            f"Detection pass with scale_factor={scale_factor}, hit_threshold={hit_threshold}"
+        )
 
         for scale in scales:
             scaled_h = int(h * scale)
@@ -433,6 +443,8 @@ class ImprovedHOGDetector:
                     finalThreshold=0,
                 )
 
+                print(f"  Scale {scale:.3f}: {len(boxes)} raw detections")
+
                 if len(boxes) > 0:
                     boxes = boxes.astype(float)
                     boxes[:, 0] /= scale
@@ -443,9 +455,11 @@ class ImprovedHOGDetector:
                     all_boxes.extend(boxes.tolist())
                     all_weights.extend(weights.flatten().tolist())
 
-            except cv2.error:
+            except cv2.error as e:
+                print(f"  Scale {scale:.3f}: cv2.error - {e}")
                 continue
 
+        print(f"Total boxes before filtering: {len(all_boxes)}")
         return self._filter_boxes(all_boxes, all_weights, image_bgr.shape, params)
 
     def _preprocess_image(
@@ -852,10 +866,10 @@ def main():
         page_title="Crowd Detector", layout="wide", initial_sidebar_state="expanded"
     )
 
-    st.title("Advanced Crowd Detector")
+    st.title("🎯 Advanced Crowd Detector")
     st.markdown("**Dual-Pass HOG Detection with Area-Based Density Estimation**")
 
-    st.sidebar.header("Configuration")
+    st.sidebar.header("⚙️ Configuration")
 
     # Theme selection - DEFAULT TO LIGHT
     theme = st.sidebar.radio("Theme", ["Light", "Dark"], index=0)
@@ -886,7 +900,7 @@ def main():
                 st.session_state["current_model"] = selected_model
                 st.sidebar.success(f"{model_config.name} loaded!")
         except Exception as e:
-            st.sidebar.error(f"Failed to load model: {str(e)}")
+            st.sidebar.error(f"❌ Failed to load model: {str(e)}")
             return
 
     detector = st.session_state["detector"]
@@ -1115,7 +1129,7 @@ def main():
         st.image(pil_img, use_container_width=True)
 
     # Run detection
-    with st.spinner("On progress.."):
+    with st.spinner("On Progress.."):
         boxes, weights = detector.detect_dual_pass(
             image_bgr, detection_params, preprocessing_params
         )
@@ -1148,13 +1162,13 @@ def main():
     emoji_map = {"Low": "🟢", "Medium": "🟡", "High": "🟠", "Very High": "🔴"}
 
     with col3:
-        st.metric("👥 People Detected", people_count)
+        st.metric("People Detected", people_count)
     with col4:
-        st.metric("🏢 Crowd Level", f"{emoji_map.get(crowd_level, '')} {crowd_level}")
+        st.metric("Crowd Level", f"{emoji_map.get(crowd_level, '')} {crowd_level}")
     with col5:
-        st.metric("📏 Area Density", f"{density_ratio:.3f}")
+        st.metric("Area Density", f"{density_ratio:.3f}")
     with col6:
-        st.metric("⭐ Avg Confidence", f"{avg_confidence:.2f}")
+        st.metric("Avg Confidence", f"{avg_confidence:.2f}")
 
     # Detection Details
     if boxes:
@@ -1179,7 +1193,7 @@ def main():
                     else:
                         st.markdown(f"🟠 **{weight:.2f}**")
     else:
-        st.warning("⚠️ No people detected. Try adjusting the parameters:")
+        st.warning("No people detected. Try adjusting the parameters:")
         st.markdown(
             """
         - **Lower Hit Threshold** (e.g., 0.3-0.5)
@@ -1195,7 +1209,7 @@ def main():
     buf = io.BytesIO()
     Image.fromarray(result_rgb).save(buf, format="PNG")
     st.download_button(
-        "Download Annotated Image",
+        "⬇️ Download Annotated Image",
         buf.getvalue(),
         f"crowd_detection_{model_config.name.lower().replace(' ', '_')}.png",
         "image/png",
