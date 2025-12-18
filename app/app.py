@@ -72,9 +72,15 @@ MODEL_CONFIGS = {
 class GlobalDefaults:
     BASE_WIDTH = 64
     BASE_HEIGHT = 128
-    ASPECT_RATIO = BASE_WIDTH / BASE_HEIGHT
+    ASPECT_RATIO = BASE_WIDTH / BASE_HEIGHT  # 0.5
+    PADDING = (8, 8)
+    NUM_SCALES = 8
+    MIN_SCALE_FACTOR = 0.1
     MIN_ASPECT_RATIO = 0.3
     MAX_ASPECT_RATIO = 0.7
+    MAX_AREA_RATIO = 0.4
+    HIGH_CONF_THRESHOLD = 1.2
+    MEDIUM_CONF_THRESHOLD = 0.7
 
 
 @dataclass
@@ -112,7 +118,7 @@ class DetectionParams:
 class CustomSVMDetector:
     def __init__(self, model_dir: str):
         model_dir = os.path.abspath(model_dir)
-        print(f"📂 Loading custom detector from: {model_dir}")
+        print(f"Loading custom detector from: {model_dir}")
 
         classifier_path = os.path.join(model_dir, "body_detector_svm_optimized.pkl")
         scaler_path = os.path.join(model_dir, "feature_scaler_optimized.pkl")
@@ -298,6 +304,16 @@ class CustomSVMDetector:
 
 
 class ImprovedHOGDetector:
+    """
+    Enhanced HOG detector with dual-pass detection and improved filtering
+
+    Based on Dalal & Triggs (2005) HOG features with improvements:
+    - Smart multi-scale pyramid
+    - Aspect ratio-aware NMS
+    - Dual-pass detection (strong + weak for better recall)
+    - Area-based density estimation
+    """
+
     BASE_WIDTH = GlobalDefaults.BASE_WIDTH
     BASE_HEIGHT = GlobalDefaults.BASE_HEIGHT
     ASPECT_RATIO = GlobalDefaults.ASPECT_RATIO
@@ -840,6 +856,8 @@ def main():
     st.markdown("**Dual-Pass HOG Detection with Area-Based Density Estimation**")
 
     st.sidebar.header("Configuration")
+
+    # Theme selection - DEFAULT TO LIGHT
     theme = st.sidebar.radio("Theme", ["Light", "Dark"], index=0)
     apply_theme(theme)
 
@@ -953,7 +971,7 @@ def main():
         brightness, contrast, sharpen = 1.0, 1.0, False
 
     # Core Detection Parameters
-    st.sidebar.subheader("Core Detection")
+    st.sidebar.subheader("🎯 Core Detection")
 
     win_stride = st.sidebar.slider(
         "Window Stride",
@@ -992,7 +1010,7 @@ def main():
     )
 
     # Multi-Scale Settings
-    st.sidebar.subheader("Multi-Scale Detection")
+    st.sidebar.subheader("📏 Multi-Scale Detection")
 
     min_person_px = st.sidebar.slider(
         "Min Person Height (px)",
@@ -1035,17 +1053,17 @@ def main():
 
     # File Upload
     uploaded_file = st.file_uploader(
-        "📤 Upload Your Image",
+        "Upload Your Image",
         type=["png", "jpg", "jpeg"],
         help="Upload an image containing people to detect",
     )
 
     if uploaded_file is None:
-        st.info("👆 Upload an image to start crowd detection")
+        st.info("Upload an image to start crowd detection")
         st.markdown("---")
         st.markdown(
             """
-        ### 🚀 How to Use:
+        ###How to Use:
         1. **Upload** an image with people
         2. **Adjust** detection parameters in the sidebar
         3. **View** results with color-coded bounding boxes:
@@ -1054,7 +1072,7 @@ def main():
            - 🟠 **Orange**: Low confidence (<0.8)
         4. **Download** the annotated image
         
-        ### 📊 What You'll Get:
+        ###What You'll Get:
         - People count
         - Crowd density level
         - Area density ratio
@@ -1093,11 +1111,11 @@ def main():
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("📷 Original Image")
+        st.subheader("Original Image")
         st.image(pil_img, use_container_width=True)
 
     # Run detection
-    with st.spinner("🔍 Detecting people (dual-pass strategy)..."):
+    with st.spinner("On progress.."):
         boxes, weights = detector.detect_dual_pass(
             image_bgr, detection_params, preprocessing_params
         )
@@ -1161,7 +1179,7 @@ def main():
                     else:
                         st.markdown(f"🟠 **{weight:.2f}**")
     else:
-        st.warning("No people detected. Try adjusting the parameters:")
+        st.warning("⚠️ No people detected. Try adjusting the parameters:")
         st.markdown(
             """
         - **Lower Hit Threshold** (e.g., 0.3-0.5)
