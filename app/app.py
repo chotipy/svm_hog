@@ -893,6 +893,31 @@ def main():
         """
         )
 
+    # Best Practices Guide
+    with st.sidebar.expander("Best Practices"):
+        st.markdown(
+            """
+        ### Mall CCTV
+        - **Hit Threshold:** 0.5-0.7
+        - **Min Final Score:** 0.6
+        - **NMS:** 0.15-0.25
+        - **Preprocessing:** Enabled
+        
+        ### Outdoor Surveillance
+        - **Hit Threshold:** 0.6-0.8
+        - **Min Final Score:** 0.6-0.7
+        - **NMS:** 0.2-0.3
+        - **Min Person Height:** 30-50px
+        - **Max Person Height:** 250-300px
+        
+        ### Dense Crowds
+        - **NMS:** 0.1-0.15
+        
+        ### Fast Processing
+        - **Number of Scales:** 4-5
+        """
+        )
+
     # Preprocessing Section
     st.sidebar.subheader("Preprocessing")
     preprocessing_enabled = st.sidebar.checkbox(
@@ -1004,31 +1029,6 @@ def main():
         0.01,
         help="Non-Maximum Suppression overlap threshold. Lower = less overlap allowed.",
     )
-
-    # Best Practices Guide
-    with st.sidebar.expander("Best Practices"):
-        st.markdown(
-            """
-        ### Mall CCTV
-        - **Hit Threshold:** 0.5-0.7
-        - **Min Final Score:** 0.6
-        - **NMS:** 0.15-0.25
-        - **Preprocessing:** Enabled
-        
-        ### Outdoor Surveillance
-        - **Hit Threshold:** 0.6-0.8
-        - **Min Final Score:** 0.6-0.7
-        - **NMS:** 0.2-0.3
-        - **Min Person Height:** 30-50px
-        - **Max Person Height:** 250-300px
-        
-        ### Dense Crowds
-        - **NMS:** 0.1-0.15
-        
-        ### Fast Processing
-        - **Number of Scales:** 4-5
-        """
-        )
 
     # File Upload
     uploaded_file = st.file_uploader(
