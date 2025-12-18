@@ -795,7 +795,7 @@ def main():
         """
         )
 
-    with st.sidebar.expander("📘 Parameter Guide"):
+    with st.sidebar.expander("Parameter Guide"):
         st.markdown(
             f"""
         ### Indoor CCTV
