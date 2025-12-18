@@ -795,6 +795,69 @@ def main():
         """
         )
 
+    with st.sidebar.expander("📘 Parameter Guide"):
+        st.markdown(
+            f"""
+        ### Indoor CCTV
+
+        Rekomendasi untuk kamera statis, sudut agak tinggi, pencahayaan stabil.
+
+        - **Hit Threshold**: `0.5 – 0.7`
+        - **Min Final Score**: `0.6`
+        - **NMS Threshold**: `0.15 – 0.25`
+        - **Weak Pass Strength**: `0.4 – 0.6`
+        - **Window Stride**: `4`
+        - **Padding**: `8`
+        - **Min Person Height**: `40 px`
+        - **Max Person Height**: `220 px`
+        - **Number of Scales**: `6`
+        - **Preprocessing**: **ENABLED**
+        - Brightness: `1.1`
+        - Contrast: `1.2`
+        - Sharpen: **YES**
+
+        ---
+
+        ### Outdoor Surveillance
+
+        Untuk kamera jalan, area luas, variasi skala besar.
+
+        - **Hit Threshold**: `0.6 – 0.8`
+        - **Min Final Score**: `0.6 – 0.7`
+        - **NMS Threshold**: `0.2 – 0.3`
+        - **Min Person Height**: `30 – 50 px`
+        - **Max Person Height**: `250 – 300 px`
+
+        ---
+
+        ### Dense Crowd (Padat)
+
+        Untuk kerumunan rapat dengan overlap tinggi.
+
+        - **NMS Threshold**: `0.10 – 0.15` (lebih ketat)
+        - **Weak Pass Strength**: `0.3 – 0.5`
+        - **Number of Scales**: `8 – 12`
+        - **Min Box Area**: `800 – 1200`
+
+        ---
+
+        ### Fast Mode (Kecepatan)
+
+        Untuk real-time / device terbatas.
+
+        - **Window Stride**: `8 – 12`
+        - **Number of Scales**: `4 – 5`
+        - **Padding**: `4 – 8`
+
+        ---
+
+        **Tips**
+        - Jika **deteksi 0** → turunkan *Hit Threshold* (bahkan negatif)
+        - Jika **terlalu banyak box** → naikkan *Min Final Score* atau *NMS*
+        - Jika **orang kecil tidak terdeteksi** → turunkan *Min Person Height*
+        """
+        )
+
     # Preprocessing
     st.sidebar.subheader("Preprocessing")
     preprocessing_enabled = st.sidebar.checkbox("Enable Preprocessing", False)
