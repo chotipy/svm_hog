@@ -552,9 +552,7 @@ class ImprovedHOGDetector:
     def _apply_nms(
         self, boxes: List[List[float]], weights: List[float], nms_threshold: float
     ) -> Tuple[List[List[float]], List[float]]:
-        """
-        Non-Maximum Suppression to remove overlapping boxes
-        """
+
         if not boxes:
             return [], []
 
@@ -993,77 +991,77 @@ def main():
 
         return st.sidebar.slider(label, min_v, max_v, default, step, key=key, **kwargs)
 
-        win_stride = safe_slider(
-            "Window Stride",
-            2,
-            16,
-            int(model_config.win_stride),
-            2,
-            key="win_stride",
-            help="Step size for sliding window. Lower = more thorough but slower.",
-        )
+    win_stride = safe_slider(
+        "Window Stride",
+        2,
+        16,
+        int(model_config.win_stride),
+        2,
+        key="win_stride",
+        help="Step size for sliding window. Lower = more thorough but slower.",
+    )
 
-        padding = safe_slider(
-            "Padding",
-            0,
-            32,
-            int(model_config.padding),
-            4,
-            key="padding",
-            help="Extra padding around detection window.",
-        )
+    padding = safe_slider(
+        "Padding",
+        0,
+        32,
+        int(model_config.padding),
+        4,
+        key="padding",
+        help="Extra padding around detection window.",
+    )
 
-        hit_threshold = safe_slider(
-            "Hit Threshold",
-            0.0,
-            2.0,
-            float(model_config.default_hit_threshold),
-            0.05,
-            key="hit_threshold",
-            help="Initial detection confidence threshold. Lower = more detections (more false positives).",
-        )
+    hit_threshold = safe_slider(
+        "Hit Threshold",
+        0.0,
+        2.0,
+        float(model_config.default_hit_threshold),
+        0.05,
+        key="hit_threshold",
+        help="Initial detection confidence threshold. Lower = more detections (more false positives).",
+    )
 
-        min_final_score = safe_slider(
-            "Min Final Score",
-            0.0,
-            2.0,
-            float(model_config.default_min_final_score),
-            0.05,
-            key="min_final_score",
-            help="Final confidence cutoff after NMS.",
-        )
+    min_final_score = safe_slider(
+        "Min Final Score",
+        0.0,
+        2.0,
+        float(model_config.default_min_final_score),
+        0.05,
+        key="min_final_score",
+        help="Final confidence cutoff after NMS.",
+    )
 
-        st.sidebar.subheader("📏 Multi-Scale Detection")
+    st.sidebar.subheader("Multi-Scale Detection")
 
-        min_person_px = safe_slider(
-            "Min Person Height (px)",
-            20,
-            120,
-            int(model_config.min_person_px),
-            5,
-            key="min_person_px",
-            help="Minimum expected person height in pixels.",
-        )
+    min_person_px = safe_slider(
+        "Min Person Height (px)",
+        20,
+        120,
+        int(model_config.min_person_px),
+        5,
+        key="min_person_px",
+        help="Minimum expected person height in pixels.",
+    )
 
-        max_person_px = safe_slider(
-            "Max Person Height (px)",
-            80,
-            500,
-            int(model_config.max_person_px),
-            10,
-            key="max_person_px",
-            help="Maximum expected person height in pixels.",
-        )
+    max_person_px = safe_slider(
+        "Max Person Height (px)",
+        80,
+        500,
+        int(model_config.max_person_px),
+        10,
+        key="max_person_px",
+        help="Maximum expected person height in pixels.",
+    )
 
-        num_scales = safe_slider(
-            "Number of Scales",
-            4,
-            15,
-            int(model_config.num_scales),
-            1,
-            key="num_scales",
-            help="How many scales to test between min and max.",
-        )
+    num_scales = safe_slider(
+        "Number of Scales",
+        4,
+        15,
+        int(model_config.num_scales),
+        1,
+        key="num_scales",
+        help="How many scales to test between min and max.",
+    )
 
     st.sidebar.subheader("Post-Processing")
 
