@@ -153,9 +153,7 @@ class CustomSVMDetector:
         self.min_aspect_ratio = params["min_aspect_ratio"]
         self.max_aspect_ratio = params["max_aspect_ratio"]
 
-        print(
-            f"✅ Custom SVM loaded successfully (v{config.get('version', 'unknown')})"
-        )
+        print(f"Custom SVM loaded successfully (v{config.get('version', 'unknown')})")
 
     def detect_multiscale(
         self, image: np.ndarray
@@ -327,7 +325,7 @@ class ImprovedHOGDetector:
             self.hog = cv2.HOGDescriptor()
             self.hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
             self.custom_detector = None
-            print("✅ OpenCV HOG detector loaded")
+            print("OpenCV HOG detector loaded")
             print(f"  Base window: {self.BASE_WIDTH}×{self.BASE_HEIGHT}")
             print(f"  Target aspect ratio: {self.ASPECT_RATIO:.2f}")
 
@@ -336,7 +334,7 @@ class ImprovedHOGDetector:
                 self.custom_detector = CustomSVMDetector(model_config.model_path)
                 self.hog = None
             except Exception as e:
-                print(f"⚠️ Failed to load custom model: {e}")
+                print(f"Failed to load custom model: {e}")
                 print("  Falling back to OpenCV HOG...")
                 self.hog = cv2.HOGDescriptor()
                 self.hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
@@ -984,92 +982,88 @@ def main():
     else:
         brightness, contrast, sharpen = 1.0, 1.0, False
 
-    # Core Detection Parameters
+    st.sidebar.subheader("Core Detection")
 
+    def safe_slider(label, min_v, max_v, default, step, key, **kwargs):
+        # Reset kalau ada value lama yg out of range
+        if key in st.session_state:
+            v = st.session_state[key]
+            if v < min_v or v > max_v:
+                st.session_state[key] = default
 
-st.sidebar.subheader("Core Detection")
+        return st.sidebar.slider(label, min_v, max_v, default, step, key=key, **kwargs)
 
+        win_stride = safe_slider(
+            "Window Stride",
+            2,
+            16,
+            int(model_config.win_stride),
+            2,
+            key="win_stride",
+            help="Step size for sliding window. Lower = more thorough but slower.",
+        )
 
-def safe_slider(label, min_v, max_v, default, step, key, **kwargs):
-    # Reset kalau ada value lama yg out of range
-    if key in st.session_state:
-        v = st.session_state[key]
-        if v < min_v or v > max_v:
-            st.session_state[key] = default
+        padding = safe_slider(
+            "Padding",
+            0,
+            32,
+            int(model_config.padding),
+            4,
+            key="padding",
+            help="Extra padding around detection window.",
+        )
 
-    return st.sidebar.slider(label, min_v, max_v, default, step, key=key, **kwargs)
+        hit_threshold = safe_slider(
+            "Hit Threshold",
+            0.0,
+            2.0,
+            float(model_config.default_hit_threshold),
+            0.05,
+            key="hit_threshold",
+            help="Initial detection confidence threshold. Lower = more detections (more false positives).",
+        )
 
-    win_stride = safe_slider(
-        "Window Stride",
-        2,
-        16,
-        int(model_config.win_stride),
-        2,
-        key="win_stride",
-        help="Step size for sliding window. Lower = more thorough but slower.",
-    )
+        min_final_score = safe_slider(
+            "Min Final Score",
+            0.0,
+            2.0,
+            float(model_config.default_min_final_score),
+            0.05,
+            key="min_final_score",
+            help="Final confidence cutoff after NMS.",
+        )
 
-    padding = safe_slider(
-        "Padding",
-        0,
-        32,
-        int(model_config.padding),
-        4,
-        key="padding",
-        help="Extra padding around detection window.",
-    )
+        st.sidebar.subheader("📏 Multi-Scale Detection")
 
-    hit_threshold = safe_slider(
-        "Hit Threshold",
-        0.0,
-        2.0,
-        float(model_config.default_hit_threshold),
-        0.05,
-        key="hit_threshold",
-        help="Initial detection confidence threshold. Lower = more detections (more false positives).",
-    )
+        min_person_px = safe_slider(
+            "Min Person Height (px)",
+            20,
+            120,
+            int(model_config.min_person_px),
+            5,
+            key="min_person_px",
+            help="Minimum expected person height in pixels.",
+        )
 
-    min_final_score = safe_slider(
-        "Min Final Score",
-        0.0,
-        2.0,
-        float(model_config.default_min_final_score),
-        0.05,
-        key="min_final_score",
-        help="Final confidence cutoff after NMS.",
-    )
+        max_person_px = safe_slider(
+            "Max Person Height (px)",
+            80,
+            500,
+            int(model_config.max_person_px),
+            10,
+            key="max_person_px",
+            help="Maximum expected person height in pixels.",
+        )
 
-    st.sidebar.subheader("📏 Multi-Scale Detection")
-
-    min_person_px = safe_slider(
-        "Min Person Height (px)",
-        20,
-        120,
-        int(model_config.min_person_px),
-        5,
-        key="min_person_px",
-        help="Minimum expected person height in pixels.",
-    )
-
-    max_person_px = safe_slider(
-        "Max Person Height (px)",
-        80,
-        500,
-        int(model_config.max_person_px),
-        10,
-        key="max_person_px",
-        help="Maximum expected person height in pixels.",
-    )
-
-    num_scales = safe_slider(
-        "Number of Scales",
-        4,
-        15,
-        int(model_config.num_scales),
-        1,
-        key="num_scales",
-        help="How many scales to test between min and max.",
-    )
+        num_scales = safe_slider(
+            "Number of Scales",
+            4,
+            15,
+            int(model_config.num_scales),
+            1,
+            key="num_scales",
+            help="How many scales to test between min and max.",
+        )
 
     st.sidebar.subheader("Post-Processing")
 
