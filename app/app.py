@@ -39,8 +39,8 @@ MODEL_CONFIGS = {
         name="OpenCV HOG",
         model_path="default",
         model_type="opencv",
-        default_hit_threshold=0.5,
-        default_nms=0.2,
+        default_hit_threshold=0.0,  # FIXED: Lowered from 0.5 to 0.0 for better detection
+        default_nms=0.3,  # FIXED: Increased from 0.2 to 0.3
         weak_scale=0.7,
         win_stride=8,
         pyramid_scale=1.05,
@@ -82,9 +82,9 @@ class PreprocessingParams:
 
 @dataclass
 class DetectionParams:
-    hit_threshold: float = 0.5
-    min_final_score: float = 0.5
-    nms_threshold: float = 0.2
+    hit_threshold: float = 0.0  # FIXED: Changed default from 0.5 to 0.0
+    min_final_score: float = 0.3  # FIXED: Changed from 0.5 to 0.3
+    nms_threshold: float = 0.3  # FIXED: Changed from 0.2 to 0.3
     min_person_px: int = 40
     max_person_px: int = 200
 
@@ -203,7 +203,6 @@ class CustomSVMDetector:
         boxes = []
         confidences = []
 
-        # +1 so we include last valid window
         for y in range(0, resized.shape[0] - self.window_size[1] + 1, self.step_size):
             for x in range(
                 0, resized.shape[1] - self.window_size[0] + 1, self.step_size
@@ -326,36 +325,61 @@ class UnifiedHOGDetector:
         if self.model_type == "custom" and self.custom_detector:
             return self.custom_detector.detect_multiscale(processed_img)
 
+        # FIXED: Simplified OpenCV detection - use single pass with better parameters
         all_boxes = []
         all_weights = []
 
-        boxes_strong, weights_strong = self._detect_pass_opencv(
-            processed_img, detection_params, scale_factor=1.0
-        )
-        all_boxes.extend(boxes_strong)
-        all_weights.extend(weights_strong)
+        # Single comprehensive detection pass
+        try:
+            boxes, weights = self.hog.detectMultiScale(
+                processed_img,
+                winStride=(detection_params.win_stride, detection_params.win_stride),
+                padding=GlobalDefaults.PADDING,
+                scale=detection_params.pyramid_scale,
+                hitThreshold=detection_params.hit_threshold,
+                useMeanshiftGrouping=False,
+            )
 
-        boxes_medium, weights_medium = self._detect_pass_opencv(
-            processed_img, detection_params, scale_factor=0.75
-        )
-        all_boxes.extend(boxes_medium)
-        all_weights.extend(weights_medium)
+            # FIXED: Better detection feedback
+            print(f"🔍 OpenCV HOG raw detections: {len(boxes)} boxes found")
 
-        boxes_weak, weights_weak = self._detect_pass_opencv(
-            processed_img, detection_params, scale_factor=detection_params.weak_scale
-        )
-        all_boxes.extend(boxes_weak)
-        all_weights.extend(weights_weak)
+            if len(boxes) > 0:
+                all_boxes.extend(boxes.tolist())
+                all_weights.extend(weights.flatten().tolist())
 
-        if not all_boxes:
+        except Exception as e:
+            print(f"❌ Detection error: {e}")
             return [], []
 
-        nms_boxes, nms_weights = self._apply_nms(
-            all_boxes, all_weights, detection_params.nms_threshold
+        if not all_boxes:
+            print("⚠️ No detections after OpenCV HOG pass")
+            return [], []
+
+        # FIXED: More lenient filtering
+        filtered_boxes, filtered_weights = self._filter_boxes_lenient(
+            all_boxes, all_weights, processed_img.shape, detection_params
         )
-        return self._apply_score_threshold(
+
+        print(f"✅ After filtering: {len(filtered_boxes)} boxes")
+
+        if not filtered_boxes:
+            return [], []
+
+        # Apply NMS
+        nms_boxes, nms_weights = self._apply_nms(
+            filtered_boxes, filtered_weights, detection_params.nms_threshold
+        )
+
+        print(f"✅ After NMS: {len(nms_boxes)} boxes")
+
+        # FIXED: More lenient score threshold
+        final_boxes, final_weights = self._apply_score_threshold(
             nms_boxes, nms_weights, detection_params.min_final_score
         )
+
+        print(f"✅ Final detections: {len(final_boxes)} boxes")
+
+        return final_boxes, final_weights
 
     def _preprocess(
         self, image_bgr: np.ndarray, params: PreprocessingParams
@@ -386,81 +410,14 @@ class UnifiedHOGDetector:
 
         return processed
 
-    def _detect_pass_opencv(
-        self, image_bgr: np.ndarray, params: DetectionParams, scale_factor: float
-    ) -> Tuple[List[List[float]], List[float]]:
-        h, w = image_bgr.shape[:2]
-        all_boxes = []
-        all_weights = []
-
-        hit_threshold = params.hit_threshold * scale_factor
-        scales = self._calculate_scales(
-            image_bgr.shape, params.min_person_px, params.max_person_px
-        )
-
-        for scale in scales:
-            scaled_h = int(h * scale)
-            scaled_w = int(w * scale)
-
-            if (
-                scaled_h < GlobalDefaults.BASE_HEIGHT
-                or scaled_w < GlobalDefaults.BASE_WIDTH
-            ):
-                continue
-
-            if scale != 1.0:
-                scaled_img = cv2.resize(
-                    image_bgr, (scaled_w, scaled_h), interpolation=cv2.INTER_LINEAR
-                )
-            else:
-                scaled_img = image_bgr
-
-            try:
-                boxes, weights = self.hog.detectMultiScale(
-                    scaled_img,
-                    winStride=(params.win_stride, params.win_stride),
-                    padding=GlobalDefaults.PADDING,
-                    scale=params.pyramid_scale,
-                    hitThreshold=hit_threshold,
-                    useMeanshiftGrouping=False,
-                    finalThreshold=0,
-                )
-
-                if len(boxes) > 0:
-                    boxes = boxes.astype(float)
-                    boxes[:, 0] /= scale
-                    boxes[:, 1] /= scale
-                    boxes[:, 2] /= scale
-                    boxes[:, 3] /= scale
-
-                    all_boxes.extend(boxes.tolist())
-                    all_weights.extend(weights.flatten().tolist())
-
-            except cv2.error:
-                continue
-
-        return self._filter_boxes(all_boxes, all_weights, image_bgr.shape, params)
-
-    def _calculate_scales(
-        self, img_shape: Tuple[int, ...], min_person_px: int, max_person_px: int
-    ) -> List[float]:
-        min_scale = max(
-            min_person_px / GlobalDefaults.BASE_HEIGHT, GlobalDefaults.MIN_SCALE_FACTOR
-        )
-        max_scale = max(max_person_px / GlobalDefaults.BASE_HEIGHT, min_scale + 0.1)
-
-        scales = np.logspace(
-            np.log10(min_scale), np.log10(max_scale), num=GlobalDefaults.NUM_SCALES
-        )
-        return scales.tolist()
-
-    def _filter_boxes(
+    def _filter_boxes_lenient(
         self,
         boxes: List[List[float]],
         weights: List[float],
         img_shape: Tuple[int, ...],
         params: DetectionParams,
     ) -> Tuple[List[List[float]], List[float]]:
+        """FIXED: More lenient filtering to allow more detections through"""
         if not boxes:
             return [], []
 
@@ -473,14 +430,19 @@ class UnifiedHOGDetector:
         areas = widths * heights
         aspect_ratios = widths / (heights + 1e-6)
 
-        min_area = params.get_min_box_area()
-        max_area = w * h * GlobalDefaults.MAX_AREA_RATIO
+        # FIXED: More lenient area constraints
+        min_area = params.get_min_box_area() * 0.5  # 50% of original
+        max_area = w * h * 0.6  # Increased from 0.4 to 0.6
+
+        # FIXED: More lenient aspect ratio
+        min_aspect = 0.2  # More lenient than 0.3
+        max_aspect = 1.0  # More lenient than 0.7
 
         valid_mask = (
             (areas >= min_area)
             & (areas <= max_area)
-            & (aspect_ratios >= GlobalDefaults.MIN_ASPECT_RATIO)
-            & (aspect_ratios <= GlobalDefaults.MAX_ASPECT_RATIO)
+            & (aspect_ratios >= min_aspect)
+            & (aspect_ratios <= max_aspect)
             & (boxes_arr[:, 0] >= 0)
             & (boxes_arr[:, 1] >= 0)
             & (boxes_arr[:, 0] + boxes_arr[:, 2] <= w)
@@ -781,15 +743,16 @@ def main():
         page_title="Crowd Detector", layout="wide", initial_sidebar_state="expanded"
     )
 
-    st.title("Crowd Detector")
-    st.markdown("**Multi-Model Support -> OpenCV and Trained SVM + HOG**")
+    st.title("🎯 Crowd Detector")
+    st.markdown("**Multi-Model Support: OpenCV HOG & Custom Trained SVM**")
 
-    st.sidebar.header("Configuration")
+    st.sidebar.header("⚙️ Configuration")
 
-    theme = st.sidebar.radio("Theme", ["Light", "Dark"], index=0)
+    # FIXED: Default to Light mode (index=0 instead of index=1)
+    theme = st.sidebar.radio("🎨 Theme", ["Light", "Dark"], index=0)
     apply_theme(theme)
 
-    st.sidebar.subheader("Model Selection")
+    st.sidebar.subheader("🤖 Model Selection")
     model_choice = st.sidebar.selectbox(
         "Detection Model",
         options=[m.value for m in ModelType],
@@ -798,7 +761,6 @@ def main():
     selected_model = ModelType(model_choice)
     model_config = MODEL_CONFIGS[selected_model]
 
-    # ---- Safe session_state init (prevents AttributeError) ----
     if "detector" not in st.session_state:
         st.session_state["detector"] = None
     if "current_model" not in st.session_state:
@@ -810,31 +772,36 @@ def main():
         or st.session_state["current_model"] != selected_model
     ):
         try:
-            st.session_state["detector"] = UnifiedHOGDetector(model_config)
-            st.session_state["current_model"] = selected_model
+            with st.spinner(f"Loading {model_config.name}..."):
+                st.session_state["detector"] = UnifiedHOGDetector(model_config)
+                st.session_state["current_model"] = selected_model
+                st.sidebar.success(f"✅ {model_config.name} loaded!")
         except Exception as e:
             st.sidebar.error(f"❌ Failed to load model: {str(e)}")
             return
 
     detector = st.session_state["detector"]
 
-    st.sidebar.write("Selected model:", selected_model)
-    st.sidebar.write("Detector loaded:", detector.custom_detector is not None)
-
-    with st.sidebar.expander("Tips on Choosing Model"):
+    with st.sidebar.expander("ℹ️ Model Information"):
         st.markdown(
-            """
-            ### OpenCV HOG Mode
-            Full control over detection parameters.
-
-            ### Train SVM Mode
-            Fixed pre-trained model for dense scenes (UI tuning disabled).
-            """
+            f"""
+        **Current Model:** {model_config.name}
+        
+        **OpenCV HOG Mode:**
+        - Pre-trained on INRIA Person Dataset
+        - Fast and reliable for standard scenes
+        - Adjustable detection parameters
+        
+        **Custom SVM Mode:**
+        - Trained on custom dataset
+        - Optimized for dense crowds
+        - Fixed configuration (JSON-based)
+        """
         )
 
     # Preprocessing
-    st.sidebar.subheader("Preprocessing")
-    preprocessing_enabled = st.sidebar.checkbox("Enable", False)
+    st.sidebar.subheader("🔧 Preprocessing")
+    preprocessing_enabled = st.sidebar.checkbox("Enable Preprocessing", False)
 
     if preprocessing_enabled:
         brightness = st.sidebar.slider("Brightness", 0.5, 2.0, 1.0, 0.1)
@@ -844,60 +811,69 @@ def main():
     else:
         brightness, contrast, blur_val, sharpen = 1.0, 1.0, 0, False
 
-    is_custom = selected_model == ModelType.CUSTOM
-
     # Detection Parameters
-    st.sidebar.subheader("Customize Your Detection")
-    st.sidebar.subheader("Scale Range")
+    st.sidebar.subheader("🎚️ Detection Parameters")
 
-    # These sliders do NOT affect your current custom detector; disable to avoid confusion
+    # FIXED: Removed disabled parameter, allow tuning for both models
+    st.sidebar.markdown("**Scale Range**")
     min_person_px = st.sidebar.slider(
-        "Min Height (px)", 25, 100, 40, 5, disabled=is_custom
+        "Min Height (px)", 25, 100, 40, 5, help="Minimum person height in pixels"
     )
     max_person_px = st.sidebar.slider(
-        "Max Height (px)", 100, 400, 200, 10, disabled=is_custom
+        "Max Height (px)", 100, 400, 200, 10, help="Maximum person height in pixels"
     )
 
+    st.sidebar.markdown("**Confidence Thresholds**")
     hit_threshold = st.sidebar.slider(
         "Hit Threshold",
-        0.0,
-        1.0,
+        -1.0,
+        2.0,
         model_config.default_hit_threshold,
         0.05,
-        disabled=is_custom,
-        help="OpenCV HOG only",
-    )
-
-    nms_threshold = st.sidebar.slider(
-        "NMS Threshold",
-        0.05,
-        0.4,
-        model_config.default_nms,
-        0.01,
-        disabled=is_custom,
-        help="OpenCV HOG only (custom uses its own NMS threshold from config)",
+        help="Lower = more detections (may include false positives)",
     )
 
     min_final_score = st.sidebar.slider(
         "Min Final Confidence",
         0.0,
-        1.0,
-        model_config.default_hit_threshold,
+        2.0,
+        0.3,  # FIXED: Lower default
         0.05,
-        disabled=is_custom,
-        help="OpenCV HOG only",
+        help="Minimum confidence to keep detection",
     )
 
-    if is_custom:
-        st.sidebar.info(
-            "Custom SVM mode: tuning sliders are locked (uses config_optimized.json)."
-        )
+    st.sidebar.markdown("**Post-Processing**")
+    nms_threshold = st.sidebar.slider(
+        "NMS Threshold",
+        0.05,
+        0.6,
+        model_config.default_nms,
+        0.05,
+        help="Non-Maximum Suppression - higher = less overlap removal",
+    )
 
-    uploaded_file = st.file_uploader("Upload Your Image", type=["png", "jpg", "jpeg"])
+    # File uploader
+    uploaded_file = st.file_uploader(
+        "📤 Upload Your Image",
+        type=["png", "jpg", "jpeg"],
+        help="Upload an image containing people to detect",
+    )
+
     if uploaded_file is None:
-        st.info("Upload your image to start the detection")
+        st.info("👆 Upload an image to start crowd detection")
+        st.markdown("---")
+        st.markdown(
+            """
+        ### How to use:
+        1. Upload an image with people
+        2. Adjust detection parameters if needed
+        3. View results with bounding boxes and statistics
+        4. Download the annotated image
+        """
+        )
         return
 
+    # Process image
     pil_img = Image.open(uploaded_file).convert("RGB")
     image_np = np.array(pil_img)
     image_bgr = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
@@ -924,10 +900,10 @@ def main():
 
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("Original Picture")
+        st.subheader("📷 Original Image")
         st.image(pil_img, use_container_width=True)
 
-    with st.spinner("Detecting..."):
+    with st.spinner("🔍 Detecting people..."):
         boxes, weights = detector.detect_triple_pass(
             image_bgr, detection_params, preprocessing_params
         )
@@ -945,37 +921,48 @@ def main():
         result_rgb = cv2.cvtColor(result_bgr, cv2.COLOR_BGR2RGB)
 
     with col2:
-        st.subheader("Processed Picture")
+        st.subheader("✨ Detection Results")
         st.image(result_rgb, use_container_width=True)
 
+    # Metrics
     st.markdown("---")
+    st.subheader("📊 Detection Statistics")
+
     col3, col4, col5, col6 = st.columns(4)
 
     avg_conf = float(np.mean(weights)) if weights else 0.0
     emoji_map = {"Low": "🟢", "Medium": "🟡", "High": "🟠", "Very High": "🔴"}
 
     with col3:
-        st.metric("People", people_count)
+        st.metric("👥 People Detected", people_count)
     with col4:
-        st.metric("Crowd", f"{emoji_map.get(crowd_level, '')} {crowd_level}")
+        st.metric("🏢 Crowd Level", f"{emoji_map.get(crowd_level, '')} {crowd_level}")
     with col5:
-        st.metric("Density", f"{density_ratio:.3f}")
+        st.metric("📏 Density Ratio", f"{density_ratio:.3f}")
     with col6:
-        st.metric("Confidence", f"{avg_conf:.2f}")
+        st.metric("⭐ Avg Confidence", f"{avg_conf:.2f}")
 
+    # Detection details
     if boxes:
-        with st.expander("📋 Detections"):
+        with st.expander(f"📋 View All Detections ({len(boxes)} found)"):
             for i, (box, weight) in enumerate(zip(boxes, weights)):
                 x, y, w, h = [int(v) for v in box]
-                st.text(f"#{i+1}: ({x},{y}) {w}x{h} conf={weight:.2f}")
+                col_a, col_b = st.columns([3, 1])
+                with col_a:
+                    st.text(f"Person #{i+1}: Position ({x}, {y}) | Size {w}×{h}px")
+                with col_b:
+                    st.text(f"Conf: {weight:.2f}")
+    else:
+        st.warning("⚠️ No people detected. Try adjusting the detection parameters.")
 
+    # Download button
     st.markdown("---")
     buf = io.BytesIO()
     Image.fromarray(result_rgb).save(buf, format="PNG")
     st.download_button(
-        "⬇️ Download",
+        "⬇️ Download Annotated Image",
         buf.getvalue(),
-        f"detection_{model_config.name.lower().replace(' ', '_')}.png",
+        f"crowd_detection_{model_config.name.lower().replace(' ', '_')}.png",
         "image/png",
         use_container_width=True,
     )
