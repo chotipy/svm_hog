@@ -1,9 +1,9 @@
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
 import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_DIR = os.path.join(BASE_DIR, "models")
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+MODELS_DIR = os.path.join(BASE_DIR, "models")
 
 
 class ModelKey(Enum):
@@ -14,25 +14,28 @@ class ModelKey(Enum):
 
 @dataclass
 class ModelConfig:
-    key: ModelKey
     backend: str
     model_dir: str
+    model_file: str | None = None
+    config_file: str | None = None
 
 
 MODEL_CONFIGS = {
     ModelKey.OPENCV_HOG: ModelConfig(
-        key=ModelKey.OPENCV_HOG,
         backend="opencv",
-        model_dir=os.path.join(MODEL_DIR, "opencv_hog"),
+        model_dir=os.path.join(MODELS_DIR, "opencv-hog"),
+        model_file="opencv_hog.pkl",
     ),
     ModelKey.SVM_HOG: ModelConfig(
-        key=ModelKey.SVM_HOG,
-        backend="svm_hog",
-        model_dir=os.path.join(MODEL_DIR, "svm_hog"),
+        backend="svm",
+        model_dir=os.path.join(MODELS_DIR, "hog+svm"),
+        model_file="hog_svm_model.pkl",
+        config_file="model_config_svm.pkl",
     ),
     ModelKey.SVM_HOG_SIFT: ModelConfig(
-        key=ModelKey.SVM_HOG_SIFT,
-        backend="svm_hog_sift",
-        model_dir=os.path.join(MODEL_DIR, "svm_hog_sift"),
+        backend="svm",
+        model_dir=os.path.join(MODELS_DIR, "hog+svm+sift"),
+        model_file="hog_sift_svm_model.pkl",
+        config_file="model_config.pkl",
     ),
 }
