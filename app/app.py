@@ -22,9 +22,9 @@ def estimate_crowd_density(
 
     if density_ratio < 0.03:
         level = "Low"
-    elif density_ratio < 0.06:
-        level = "Medium"
     elif density_ratio < 0.10:
+        level = "Medium"
+    elif density_ratio > 0.10:
         level = "High"
     else:
         level = "Very High"
@@ -36,142 +36,167 @@ def apply_theme(theme: str):
     if theme == "Light":
         st.markdown(
             """
-        <style>
-        :root {
-            --bg-main: #faf3f7;
-            --bg-soft: #f3e7ee;
-            --sidebar: #f6dde9;
+            <style>
+            /* ===============================
+               LIGHT THEME (FORCE OVERRIDE)
+               =============================== */
 
-            --text-primary: #3b1f2b;
-            --text-secondary: #7a4a63;
+            :root {
+                --bg-main: #faf3f7;
+                --bg-soft: #f3e7ee;
+                --sidebar: #f6dde9;
 
-            --accent: #c45aa3;
-            --accent-soft: #d78ab6;
+                --text-primary: #3b1f2b;
+                --text-secondary: #7a4a63;
 
-            --border: rgba(196,90,163,0.25);
-        }
+                --accent: #c45aa3;
+                --accent-soft: #d78ab6;
 
-        .stApp {
-            background: linear-gradient(135deg, var(--bg-main), var(--bg-soft));
-            color: var(--text-primary) !important;
-        }
+                --border: rgba(196,90,163,0.25);
+            }
 
-        [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, var(--sidebar), #f1d4e3) !important;
-            border-right: 1px solid var(--border);
-        }
+            /* App background */
+            html, body, .stApp {
+                background: linear-gradient(135deg, var(--bg-main), var(--bg-soft));
+                color: var(--text-primary) !important;
+            }
 
-        h1, h2, h3 {
-            color: var(--text-primary) !important;
-            font-weight: 800;
-        }
+            /* FORCE ALL TEXT COLOR (Streamlit override fix) */
+            .stApp, .stApp * {
+                color: var(--text-primary) !important;
+            }
 
-        .stMarkdown, label {
-            color: var(--text-secondary) !important;
-        }
+            /* Sidebar */
+            [data-testid="stSidebar"] {
+                background: linear-gradient(180deg, var(--sidebar), #f1d4e3) !important;
+                border-right: 1px solid var(--border);
+            }
 
-        .stButton > button {
-            background: linear-gradient(135deg,
-                var(--accent),
-                var(--accent-soft));
-            color: white;
-            border-radius: 14px;
-            font-weight: 700;
-            box-shadow: 0 6px 18px rgba(196,90,163,0.35);
-            transition: all 0.3s ease;
-        }
+            /* Headings */
+            h1, h2, h3, h4, h5, h6 {
+                color: var(--text-primary) !important;
+                font-weight: 800;
+            }
 
-        .stButton > button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 26px rgba(196,90,163,0.55);
-        }
+            /* Markdown & text blocks */
+            p, span, div, label {
+                color: var(--text-primary) !important;
+            }
 
-        div[data-testid="metric-container"] {
-            background: white;
-            border-left: 5px solid var(--accent);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 14px rgba(196,90,163,0.18);
-        }
+            /* Buttons */
+            .stButton > button {
+                background: linear-gradient(135deg,
+                    var(--accent),
+                    var(--accent-soft));
+                color: white !important;
+                border-radius: 14px;
+                font-weight: 700;
+                box-shadow: 0 6px 18px rgba(196,90,163,0.35);
+                transition: all 0.3s ease;
+            }
 
-        div[data-testid="metric-container"] label {
-            color: var(--accent) !important;
-            font-weight: 700;
-        }
-        </style>
-        """,
+            .stButton > button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 26px rgba(196,90,163,0.55);
+            }
+
+            /* Metric cards */
+            div[data-testid="metric-container"] {
+                background: white;
+                border-left: 5px solid var(--accent);
+                border-radius: 12px;
+                padding: 20px;
+                box-shadow: 0 4px 14px rgba(196,90,163,0.18);
+            }
+
+            div[data-testid="metric-container"] label {
+                color: var(--accent) !important;
+                font-weight: 700;
+            }
+
+            div[data-testid="metric-container"] [data-testid="stMetricValue"] {
+                color: var(--text-primary) !important;
+                font-weight: 800;
+            }
+            </style>
+            """,
             unsafe_allow_html=True,
         )
+
     else:
         st.markdown(
             """
-        <style>
-        :root {
-            --bg-main: #1f1624;
-            --bg-soft: #2a1d30;
-            --sidebar: #140d18;
+            <style>
+            /* ===============================
+               DARK THEME
+               =============================== */
 
-            --text-primary: #faf3f7;
-            --text-secondary: #f3e7ee;
+            :root {
+                --bg-main: #1f1624;
+                --bg-soft: #2a1d30;
+                --sidebar: #140d18;
 
-            --accent: #d78ab6;
-            --accent-strong: #c45aa3;
+                --text-primary: #faf3f7;
+                --text-secondary: #f3e7ee;
 
-            --border: rgba(215, 138, 182, 0.35);
-        }
+                --accent: #d78ab6;
+                --accent-strong: #c45aa3;
 
-        .stApp {
-            background:
-                radial-gradient(circle at top right,
-                    rgba(215,138,182,0.25),
-                    transparent 30%),
-                radial-gradient(circle at bottom left,
-                    rgba(175,66,174,0.18),
-                    transparent 50%),
-                linear-gradient(135deg, var(--bg-main), var(--bg-soft));
-            color: var(--text-primary);
-        }
+                --border: rgba(215, 138, 182, 0.35);
+            }
 
-        [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, var(--sidebar), #1b1220);
-            border-right: 1px solid var(--border);
-        }
+            html, body, .stApp {
+                background:
+                    radial-gradient(circle at top right,
+                        rgba(215,138,182,0.25),
+                        transparent 30%),
+                    radial-gradient(circle at bottom left,
+                        rgba(175,66,174,0.18),
+                        transparent 50%),
+                    linear-gradient(135deg, var(--bg-main), var(--bg-soft));
+                color: var(--text-primary) !important;
+            }
 
-        h1, h2, h3 {
-            color: var(--text-primary) !important;
-            font-weight: 800;
-            text-shadow: 0 1px 6px rgba(215,138,182,0.25);
-        }
+            .stApp, .stApp * {
+                color: var(--text-primary) !important;
+            }
 
-        .stMarkdown, label {
-            color: var(--text-primary) !important;
-        }
+            [data-testid="stSidebar"] {
+                background: linear-gradient(180deg, var(--sidebar), #1b1220);
+                border-right: 1px solid var(--border);
+            }
 
-        .stButton > button {
-            background: linear-gradient(135deg,
-                var(--accent-strong),
-                var(--accent));
-            color: #ffffff;
-            border-radius: 14px;
-            font-weight: 700;
-            box-shadow: 0 8px 26px rgba(215,138,182,0.45);
-            transition: all 0.3s ease;
-        }
+            h1, h2, h3, h4, h5, h6 {
+                color: var(--text-primary) !important;
+                font-weight: 800;
+                text-shadow: 0 1px 6px rgba(215,138,182,0.25);
+            }
 
-        .stButton > button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(215,138,182,0.65);
-        }
+            .stButton > button {
+                background: linear-gradient(135deg,
+                    var(--accent-strong),
+                    var(--accent));
+                color: #ffffff !important;
+                border-radius: 14px;
+                font-weight: 700;
+                box-shadow: 0 8px 26px rgba(215,138,182,0.45);
+                transition: all 0.3s ease;
+            }
 
-        div[data-testid="metric-container"] {
-            background: linear-gradient(135deg, #2b1d33, #3a2442);
-            border-left: 5px solid var(--accent);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-        }
-        </style>
-        """,
+            .stButton > button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 40px rgba(215,138,182,0.65);
+            }
+
+            div[data-testid="metric-container"] {
+                background: linear-gradient(135deg, #2b1d33, #3a2442);
+                border-left: 5px solid var(--accent);
+                border-radius: 12px;
+                padding: 20px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+            }
+            </style>
+            """,
             unsafe_allow_html=True,
         )
 
