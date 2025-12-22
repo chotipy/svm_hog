@@ -218,6 +218,47 @@ def apply_theme(theme: str):
                 padding: 20px;
                 box-shadow: 0 8px 24px rgba(0,0,0,0.35);
             }
+
+            [data-testid="stFileUploaderDropzone"] {
+                background: white !important;
+                border: 2px dashed var(--accent) !important;
+                border-radius: 14px;
+            }
+
+            /* Uploader text */
+            [data-testid="stFileUploaderDropzone"] * {
+                color: var(--text-primary) !important;
+            }
+
+            /* Helper text */
+            [data-testid="stFileUploader"] small {
+                color: var(--text-secondary) !important;
+            }
+
+            /* Info box under uploader */
+            [data-testid="stInfo"] {
+                background: #e9e3f0 !important;
+                color: var(--text-primary) !important;
+                border-radius: 12px;
+            }
+            
+            /* Radio & Selectbox text */
+            [data-testid="stSidebar"] label,
+            [data-testid="stSidebar"] span,
+            [data-testid="stSidebar"] div {
+                color: var(--text-primary) !important;
+            }
+
+            /* Selectbox background */
+            [data-testid="stSidebar"] [data-baseweb="select"] > div {
+                background-color: white !important;
+                border-radius: 10px;
+            }
+
+            /* Selected value */
+            [data-testid="stSidebar"] [data-baseweb="select"] span {
+                color: var(--text-primary) !important;
+            }
             </style>
             """,
             unsafe_allow_html=True,
