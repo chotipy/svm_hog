@@ -343,7 +343,7 @@ def main():
     theme = st.sidebar.radio("Theme", ["Light", "Dark"], index=0)
     apply_theme(theme)
 
-    model_choice = st.sidebar.selectbox(
+    model_choice = st.sidebar.radio(
         "Detection Model",
         options=[m.value for m in ModelKey],
         index=0,
