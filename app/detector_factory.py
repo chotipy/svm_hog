@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List
-from .base import BaseDetector
+from backends.base import BaseDetector
 from utils_detection import nms_xywh
 
 
