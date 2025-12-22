@@ -10,10 +10,6 @@ class SVMWindowDetector(BaseDetector):
         model,
         config: dict,
     ):
-        """
-        model  : sklearn model / pipeline (from pkl)
-        config : dict loaded from pkl
-        """
         if not hasattr(model, "predict"):
             raise TypeError("model must be sklearn classifier or pipeline")
 

@@ -24,7 +24,7 @@ MODEL_CONFIGS = {
     ModelKey.OPENCV_HOG: ModelConfig(
         backend="opencv",
         model_dir=os.path.join(MODELS_DIR, "opencv-hog"),
-        model_file="opencv_hog.pkl",
+        config_file="opencv_hog.pkl",
     ),
     ModelKey.SVM_HOG: ModelConfig(
         backend="svm",
