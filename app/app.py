@@ -24,7 +24,7 @@ def estimate_crowd_density(
         level = "Low"
     elif density_ratio < 0.2:
         level = "Medium"
-    elif density_ratio > 0.3:
+    elif density_ratio > 0.2:
         level = "High"
     else:
         level = "Very High"

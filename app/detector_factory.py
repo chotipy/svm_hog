@@ -17,9 +17,7 @@ def load_pkl(path: str):
 def build_detector(cfg: ModelConfig):
     ok, missing = cfg.validate()
     if not ok:
-        raise FileNotFoundError(
-            "Missing required model files:\n- " + "\n- ".join(missing)
-        )
+        raise FileNotFoundError("Missing required model files:\n- " + "\n- ".join(missing))
 
     if cfg.backend == BackendType.OPENCV:
         return OpenCVHOGDetector()
@@ -27,15 +25,11 @@ def build_detector(cfg: ModelConfig):
     if cfg.backend == BackendType.SVM_HOG:
         classifier = load_pkl(cfg.files.classifier)
         config = load_pkl(cfg.files.config)
-        return SVMHOGDetector(
-            classifier=classifier, config=config, default_params=cfg.default_params
-        )
+        return SVMHOGDetector(classifier=classifier, config=config, default_params=cfg.default_params)
 
     if cfg.backend == BackendType.SVM_HOG_SIFT:
         classifier = load_pkl(cfg.files.classifier)
         config = load_pkl(cfg.files.config)
-        return SVMHOGSIFTDetector(
-            classifier=classifier, config=config, default_params=cfg.default_params
-        )
+        return SVMHOGSIFTDetector(classifier=classifier, config=config, default_params=cfg.default_params)
 
     raise ValueError(f"Unknown backend: {cfg.backend}")
