@@ -37,10 +37,6 @@ def apply_theme(theme: str):
         st.markdown(
             """
             <style>
-            /* ===============================
-               LIGHT THEME
-               =============================== */
-
             :root {
                 --bg-main: #faf3f7;
                 --bg-soft: #f3e7ee;
@@ -86,6 +82,29 @@ def apply_theme(theme: str):
             [data-testid="stSidebar"] [data-baseweb="select"] > div {
                 background: white;
                 border-radius: 10px;
+            }
+
+            /* Dropdown container */
+            div[data-baseweb="popover"] {
+                background: white !important;
+            }
+
+            /* Option item */
+            div[data-baseweb="menu"] > div {
+                background: white !important;
+                color: var(--text-primary) !important;
+            }
+
+            /* Hover state */
+            div[data-baseweb="menu"] > div:hover {
+                background: var(--bg-soft) !important;
+                color: var(--text-primary) !important;
+            }
+
+            /* Selected item */
+            div[data-baseweb="menu"] > div[aria-selected="true"] {
+                background: var(--accent-soft) !important;
+                color: white !important;
             }
 
             /* ---------- Buttons ---------- */
@@ -139,6 +158,38 @@ def apply_theme(theme: str):
                 color: var(--text-primary);
                 font-weight: 800;
             }
+
+            /* Dropdown container shadow reset */
+            div[data-baseweb="popover"] {
+                background: white !important;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.08) !important;
+            }
+
+            /* Menu wrapper */
+            div[data-baseweb="menu"] {
+                background: white !important;
+            }
+
+            /* Menu item base */
+            div[data-baseweb="menu"] > div {
+                background-color: white !important;
+                color: var(--text-primary) !important;
+            }
+
+            /* Menu item hover (FIX DARK HOVER) */
+            div[data-baseweb="menu"] > div:hover,
+            div[data-baseweb="menu"] > div:focus {
+                background-color: var(--bg-soft) !important;
+                color: var(--text-primary) !important;
+                box-shadow: none !important;
+            }
+
+            /* Selected item */
+            div[data-baseweb="menu"] > div[aria-selected="true"] {
+                background-color: var(--accent-soft) !important;
+                color: white !important;
+            }
+
             </style>
             """,
             unsafe_allow_html=True,
