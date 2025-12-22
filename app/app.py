@@ -73,37 +73,51 @@ def apply_theme(theme: str):
                 border-right: 1px solid var(--border);
             }
 
-            /* Sidebar widgets */
-            [data-testid="stSidebar"] label,
-            [data-testid="stSidebar"] span {
-                color: var(--text-primary) !important;
-            }
-
+            /* ---------- Sidebar Widgets (Dropdowns) ---------- */
+            
+            /* The main input box (collapsed) */
             [data-testid="stSidebar"] [data-baseweb="select"] > div {
-                background: white;
+                background-color: white !important;
+                color: var(--text-primary) !important;
                 border-radius: 10px;
             }
 
-            /* Dropdown container */
+            /* The SVG arrow icon */
+            [data-baseweb="select"] svg {
+                fill: var(--text-primary) !important;
+            }
+            
+            /* The floating window container */
             div[data-baseweb="popover"] {
-                background: white !important;
+                background-color: white !important;
+                border: 1px solid var(--border);
             }
 
-            /* Option item */
+            /* The list container inside the popover */
+            div[data-baseweb="menu"] {
+                background-color: white !important;
+            }
+
+            /* The individual options (unselected) */
             div[data-baseweb="menu"] > div {
-                background: white !important;
+                background-color: white !important;
+                color: var(--text-primary) !important;
+            }
+            
+            /* Specific fix for the text inside options */
+            div[data-baseweb="menu"] div {
                 color: var(--text-primary) !important;
             }
 
             /* Hover state */
             div[data-baseweb="menu"] > div:hover {
-                background: var(--bg-soft) !important;
+                background-color: var(--bg-soft) !important;
                 color: var(--text-primary) !important;
             }
 
-            /* Selected item */
+            /* Selected item state */
             div[data-baseweb="menu"] > div[aria-selected="true"] {
-                background: var(--accent-soft) !important;
+                background-color: var(--accent-soft) !important;
                 color: white !important;
             }
 
