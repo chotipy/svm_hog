@@ -2,9 +2,13 @@ import cv2
 import numpy as np
 from typing import List, Tuple, Optional
 from skimage.feature import hog
+import warnings
 
-from backends.base import BaseDetector
-from utils_detection import nms_xywh
+try:
+    from backends.base import BaseDetector
+    from utils_detection import nms_xywh
+except ImportError:
+    pass
 
 
 class SVMHOGSIFTDetector(BaseDetector):
@@ -15,8 +19,9 @@ class SVMHOGSIFTDetector(BaseDetector):
         self.classifier = classifier
         self.config = config
 
+        # Config handling
         raw_size = config.get("window_size", config.get("target_size", (64, 128)))
-        self.window_size = tuple(raw_size)  # (64, 128) -> width, height
+        self.window_size = tuple(raw_size)  # (64, 128)
 
         self.hog_params = {
             "orientations": int(config.get("hog_orientations", 9)),
@@ -26,12 +31,11 @@ class SVMHOGSIFTDetector(BaseDetector):
             "transform_sqrt": bool(config.get("hog_transform_sqrt", False)),
         }
 
-        self.sift_grid_size = tuple(
-            config.get("sift_grid_size", (4, 8))
-        )  # (4, 8) -> 32 cells
+        self.sift_grid_size = tuple(config.get("sift_grid_size", (4, 8)))  # (nx, ny)
 
         self.sift = cv2.SIFT_create()
 
+        # Validation Check
         dummy = np.zeros((self.window_size[1], self.window_size[0]), dtype=np.uint8)
         feat_dim = self._extract_features(dummy).shape[0]
 
@@ -46,7 +50,7 @@ class SVMHOGSIFTDetector(BaseDetector):
                 f"Feature dimension mismatch! Code: {feat_dim}, Model: {expected}"
             )
 
-        # 4. Runtime Params
+        # Runtime Params
         p = default_params or {}
         self.step_size = int(p.get("step_size", config.get("step_size", 8)))
         self.min_confidence = float(
@@ -55,7 +59,7 @@ class SVMHOGSIFTDetector(BaseDetector):
         self.nms_threshold = float(
             p.get("nms_threshold", config.get("nms_threshold", 0.3))
         )
-        self.scale_factor = 1.25  # Standard pyramid scale
+        self.scale_factor = float(p.get("scale_factor", 1.2))
 
     def detect(
         self,
@@ -64,7 +68,6 @@ class SVMHOGSIFTDetector(BaseDetector):
         verbose: bool = False,
     ) -> Tuple[List[List[float]], List[float]]:
 
-        # Override params from UI
         p = {
             "step_size": self.step_size,
             "min_confidence": self.min_confidence,
@@ -105,7 +108,6 @@ class SVMHOGSIFTDetector(BaseDetector):
                 for x in xs:
                     window = resized_img[y : y + win_h, x : x + win_w]
 
-                    # Validasi ketat ukuran window
                     if window.shape != (win_h, win_w):
                         continue
 
@@ -150,21 +152,19 @@ class SVMHOGSIFTDetector(BaseDetector):
         h, w = patch.shape
         nx, ny = self.sift_grid_size  # (4, 8)
 
-        # Grid parameters
-        step_x = w / nx  # 16.0
-        step_y = h / ny  # 16.0
+        step_x = w // nx
+        step_y = h // ny
 
-        # Generate Keypoints at CENTERS of the grid cells
-        # This prevents boundary issues
-        kp_size = min(step_x, step_y)
+        kp_size = float(min(step_x, step_y))
         keypoints = []
 
-        for y_idx in range(ny):
-            for x_idx in range(nx):
-                # Koordinat pusat cell
-                cx = (x_idx + 0.5) * step_x
-                cy = (y_idx + 0.5) * step_y
-                keypoints.append(cv2.KeyPoint(float(cx), float(cy), float(kp_size)))
+        for x_idx in range(nx):
+            for y_idx in range(ny):
+
+                cx = step_x * x_idx + step_x // 2
+                cy = step_y * y_idx + step_y // 2
+
+                keypoints.append(cv2.KeyPoint(float(cx), float(cy), kp_size))
 
         if patch.dtype != np.uint8:
             patch = patch.astype(np.uint8)
