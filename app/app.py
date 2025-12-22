@@ -205,6 +205,17 @@ def apply_theme(theme: str):
                 color: var(--text-primary) !important;
             }
 
+            div[data-baseweb="menu"] * {
+                color: #f3e7ee !important; /* light text */
+                font-weight: 500;
+            }
+
+            /* Selected option text */
+            div[data-baseweb="menu"] > div[aria-selected="true"] * {
+                color: white !important;
+                font-weight: 700;
+            }
+
             </style>
             """,
             unsafe_allow_html=True,
