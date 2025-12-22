@@ -377,63 +377,42 @@ def main():
         boxes: List[List[float]] = []
         scores: List[float] = []
 
-        if model_key == ModelKey.OPENCV_HOG and hasattr(detector, "hog"):
-            b, w = detector.hog.detectMultiScale(
-                img_bgr,
-                winStride=(8, 8),
-                padding=(8, 8),
-                scale=1.05,
-            )
-            if len(b) > 0:
-                boxes = b.astype(float).tolist()
-                scores = w.flatten().astype(float).tolist()
+        with st.spinner("Running detection..."):
+            params = {}
 
-        else:
-            boxes, scores = detector.detect(img_bgr)
+            boxes, scores = detector.detect(img_bgr, params)
 
-        # NMS (basic, same for all)
-        boxes, scores = nms_xywh(boxes, scores, iou_thr=0.3)
+            vis = img_bgr.copy()
+            for (x, y, w, h), sc in zip(boxes, scores):
+                x, y, w, h = map(int, [x, y, w, h])
+                cv2.rectangle(vis, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                cv2.putText(
+                    vis,
+                    f"{sc:.2f}",
+                    (x, max(0, y - 5)),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (0, 255, 0),
+                    1,
+                )
 
-        # Draw
-        vis = img_bgr.copy()
-        for (x, y, w, h), sc in zip(boxes, scores):
-            x, y, w, h = map(int, [x, y, w, h])
-            cv2.rectangle(vis, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.putText(
-                vis,
-                f"{sc:.2f}",
-                (x, max(0, y - 5)),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.5,
-                (0, 255, 0),
-                1,
-            )
+            vis_rgb = cv2.cvtColor(vis, cv2.COLOR_BGR2RGB)
+            col2.subheader("Detections")
+            col2.image(vis_rgb, use_container_width=True)
 
-        vis_rgb = cv2.cvtColor(vis, cv2.COLOR_BGR2RGB)
+            people_count = len(boxes)
+            avg_conf = float(np.mean(scores)) if scores else 0.0
+            density_ratio, crowd_level = estimate_crowd_density(boxes, img_bgr.shape)
 
-        col2.subheader("Detections")
-        col2.image(vis_rgb, use_container_width=True)
+            st.markdown("---")
+            st.subheader("📊 Detection Metrics")
+            c1, c2, c3, c4 = st.columns(4)
 
-        people_count = len(boxes)
-        avg_conf = float(np.mean(scores)) if scores else 0.0
-        density_ratio, crowd_level = estimate_crowd_density(boxes, img_bgr.shape)
-
-        st.markdown("---")
-        st.subheader("📊 Detection Metrics")
-
-        c1, c2, c3, c4 = st.columns(4)
-
-        emoji = {
-            "Low": "🟢",
-            "Medium": "🟡",
-            "High": "🟠",
-            "Very High": "🔴",
-        }
-
-        c1.metric("People Detected", people_count)
-        c2.metric("Crowd Level", f"{emoji[crowd_level]} {crowd_level}")
-        c3.metric("Area Density", f"{density_ratio:.3f}")
-        c4.metric("Avg Confidence", f"{avg_conf:.2f}")
+            emoji = {"Low": "🟢", "Medium": "🟡", "High": "🟠", "Very High": "🔴"}
+            c1.metric("People Detected", people_count)
+            c2.metric("Crowd Level", f"{emoji[crowd_level]} {crowd_level}")
+            c3.metric("Area Density", f"{density_ratio:.3f}")
+            c4.metric("Avg Confidence", f"{avg_conf:.2f}")
 
         buf = io.BytesIO()
         Image.fromarray(vis_rgb).save(buf, format="PNG")
