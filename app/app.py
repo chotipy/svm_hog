@@ -356,7 +356,7 @@ def main():
     try:
         detector = build_detector(model_cfg)
     except Exception as e:
-        st.error(f"❌ Failed to load model: {e}")
+        st.error(f"Failed to load model: {e}")
         st.stop()
 
     st.sidebar.success(f"Loaded: {model_key.value}")
@@ -373,54 +373,49 @@ def main():
     col1.subheader("Original")
     col1.image(img_rgb, use_container_width=True)
 
+    # params: pakai default dari registry (atau kosong)
+    params = model_cfg.default_params or {}
+
     with st.spinner("Running detection..."):
-        boxes: List[List[float]] = []
-        scores: List[float] = []
+        boxes, scores = detector.detect(img_bgr, params)
 
-        with st.spinner("Running detection..."):
-            params = {}
+        vis = img_bgr.copy()
+        for (x, y, w, h), sc in zip(boxes, scores):
+            x, y, w, h = map(int, [x, y, w, h])
+            cv2.rectangle(vis, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.putText(
+                vis,
+                f"{sc:.2f}",
+                (x, max(0, y - 5)),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.5,
+                (0, 255, 0),
+                1,
+            )
 
-            boxes, scores = detector.detect(img_bgr, params)
+        vis_rgb = cv2.cvtColor(vis, cv2.COLOR_BGR2RGB)
+        col2.subheader("Detections")
+        col2.image(vis_rgb, use_container_width=True)
 
-            vis = img_bgr.copy()
-            for (x, y, w, h), sc in zip(boxes, scores):
-                x, y, w, h = map(int, [x, y, w, h])
-                cv2.rectangle(vis, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                cv2.putText(
-                    vis,
-                    f"{sc:.2f}",
-                    (x, max(0, y - 5)),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5,
-                    (0, 255, 0),
-                    1,
-                )
+        people_count = len(boxes)
+        avg_conf = float(np.mean(scores)) if scores else 0.0
+        density_ratio, crowd_level = estimate_crowd_density(boxes, img_bgr.shape)
 
-            vis_rgb = cv2.cvtColor(vis, cv2.COLOR_BGR2RGB)
-            col2.subheader("Detections")
-            col2.image(vis_rgb, use_container_width=True)
+        st.markdown("---")
+        st.subheader("📊 Detection Metrics")
 
-            people_count = len(boxes)
-            avg_conf = float(np.mean(scores)) if scores else 0.0
-            density_ratio, crowd_level = estimate_crowd_density(boxes, img_bgr.shape)
+        c1, c2, c3, c4 = st.columns(4)
+        emoji = {"Low": "🟢", "Medium": "🟡", "High": "🟠", "Very High": "🔴"}
 
-            st.markdown("---")
-            st.subheader("📊 Detection Metrics")
-            c1, c2, c3, c4 = st.columns(4)
-
-            emoji = {"Low": "🟢", "Medium": "🟡", "High": "🟠", "Very High": "🔴"}
-            c1.metric("People Detected", people_count)
-            c2.metric("Crowd Level", f"{emoji[crowd_level]} {crowd_level}")
-            c3.metric("Area Density", f"{density_ratio:.3f}")
-            c4.metric("Avg Confidence", f"{avg_conf:.2f}")
+        c1.metric("People Detected", people_count)
+        c2.metric("Crowd Level", f"{emoji[crowd_level]} {crowd_level}")
+        c3.metric("Area Density", f"{density_ratio:.3f}")
+        c4.metric("Avg Confidence", f"{avg_conf:.2f}")
 
         buf = io.BytesIO()
         Image.fromarray(vis_rgb).save(buf, format="PNG")
         st.download_button(
-            "⬇️ Download result",
-            buf.getvalue(),
-            "result.png",
-            "image/png",
+            "⬇️ Download result", buf.getvalue(), "result.png", "image/png"
         )
 
 
