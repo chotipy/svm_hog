@@ -204,6 +204,17 @@ def apply_theme(theme: str):
                 color: white !important;
             }
 
+            div[data-baseweb="menu"] > div[data-highlighted="true"] {
+                background-color: var(--bg-soft) !important;
+                color: var(--text-primary) !important;
+                box-shadow: none !important;
+            }
+
+            /* Text inside highlighted option */
+            div[data-baseweb="menu"] > div[data-highlighted="true"] * {
+                color: var(--text-primary) !important;
+            }
+
             </style>
             """,
             unsafe_allow_html=True,
