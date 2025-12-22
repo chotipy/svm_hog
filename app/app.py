@@ -343,7 +343,8 @@ def main():
     theme = st.sidebar.radio("Theme", ["Light", "Dark"], index=0)
     apply_theme(theme)
 
-    model_choice = st.sidebar.radio(
+    # 1. Pilih Model
+    model_choice = st.sidebar.selectbox(  # Saya ganti jadi SelectBox agar rapi
         "Detection Model",
         options=[m.value for m in ModelKey],
         index=0,
@@ -351,6 +352,7 @@ def main():
     model_key = ModelKey(model_choice)
     model_cfg = MODEL_CONFIGS[model_key]
 
+    # 2. Load Model
     try:
         detector = build_detector(model_cfg)
     except Exception as e:
@@ -359,40 +361,79 @@ def main():
 
     st.sidebar.success(f"Loaded: {model_key.value}")
 
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("🎚️ Fine Tuning")
+
+    # Ambil default dari config
+    default_conf = (
+        model_cfg.default_params.get("min_confidence", 0.5)
+        if model_cfg.default_params
+        else 0.5
+    )
+    default_nms = (
+        model_cfg.default_params.get("nms_threshold", 0.3)
+        if model_cfg.default_params
+        else 0.3
+    )
+
+    conf_threshold = st.sidebar.slider(
+        "Confidence Threshold",
+        min_value=-2.0,  # SVM bisa negatif, jadi kita butuh range ini
+        max_value=3.0,
+        value=float(default_conf),
+        step=0.1,
+        help="Turunkan jika tidak ada deteksi. SVM score bisa bernilai negatif.",
+    )
+
+    nms_threshold = st.sidebar.slider(
+        "NMS Threshold (Overlap)",
+        min_value=0.0,
+        max_value=1.0,
+        value=float(default_nms),
+        step=0.05,
+    )
+
     uploaded = st.file_uploader("Upload image", type=["jpg", "png", "jpeg"])
     if uploaded is None:
         st.info("Upload image to run detection")
+        #
         st.stop()
 
     img_rgb = np.array(Image.open(uploaded).convert("RGB"))
+
     img_bgr = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2BGR)
 
     col1, col2 = st.columns(2)
     col1.subheader("Original")
     col1.image(img_rgb, use_container_width=True)
 
-    # params: pakai default dari registry (atau kosong)
-    params = model_cfg.default_params or {}
+    params = {"min_confidence": conf_threshold, "nms_threshold": nms_threshold}
 
     with st.spinner("Running detection..."):
-        boxes, scores = detector.detect(img_bgr, params)
+        # Panggil detect dengan params dinamis
+        boxes, scores = detector.detect(img_bgr, params=params)
 
         vis = img_bgr.copy()
+
+        # Visualisasi
         for (x, y, w, h), sc in zip(boxes, scores):
             x, y, w, h = map(int, [x, y, w, h])
-            cv2.rectangle(vis, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+            color = (0, 255, 0) if sc > 0 else (0, 165, 255)
+
+            cv2.rectangle(vis, (x, y), (x + w, y + h), color, 2)
             cv2.putText(
                 vis,
                 f"{sc:.2f}",
                 (x, max(0, y - 5)),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.5,
-                (0, 255, 0),
+                color,
                 1,
             )
 
         vis_rgb = cv2.cvtColor(vis, cv2.COLOR_BGR2RGB)
-        col2.subheader("Detections")
+        col2.subheader(f"Detections ({len(boxes)})")
         col2.image(vis_rgb, use_container_width=True)
 
         people_count = len(boxes)

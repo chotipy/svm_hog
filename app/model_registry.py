@@ -13,8 +13,6 @@ class ModelKey(Enum):
 
 
 class BackendType(Enum):
-    """Backend implementation types"""
-
     OPENCV = "opencv"
     SVM_HOG = "svm_hog"
     SVM_HOG_SIFT = "svm_hog_sift"
