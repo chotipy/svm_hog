@@ -1,23 +1,20 @@
 import cv2
-import numpy as np
-from typing import List, Tuple
-from .base import BaseDetector
 
 
-class OpenCVHOGDetector(BaseDetector):
-    def __init__(self):
-        self.hog = cv2.HOGDescriptor()
-        self.hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+class OpenCVHOGDetector:
+    def __init__(self, config):
+        self.hog = config["hog"]
+        self.winStride = tuple(config["winStride"])
+        self.padding = tuple(config["padding"])
+        self.scale = float(config["scale"])
 
-    def detect(self, image_bgr: np.ndarray) -> Tuple[List[List[float]], List[float]]:
+    def detect(self, image_bgr):
         boxes, weights = self.hog.detectMultiScale(
             image_bgr,
-            winStride=(8, 8),
-            padding=(8, 8),
-            scale=1.05,
-            hitThreshold=0.0,
-            useMeanshiftGrouping=False,
+            winStride=self.winStride,
+            padding=self.padding,
+            scale=self.scale,
         )
-        if len(boxes) == 0:
-            return [], []
-        return boxes.astype(float).tolist(), weights.flatten().astype(float).tolist()
+        boxes = boxes.tolist() if len(boxes) else []
+        scores = weights.flatten().tolist() if len(weights) else []
+        return boxes, scores

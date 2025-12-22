@@ -1,28 +1,27 @@
-import streamlit as st
-from model_registry import ModelConfig
+import os
+import pickle
 from backends.opencv_hog import OpenCVHOGDetector
 from backends.svm_window import SVMWindowDetector
 
 
-@st.cache_resource(show_spinner=False)
-def build_detector(model_config: ModelConfig):
-    if model_config.backend == "opencv":
-        return OpenCVHOGDetector()
+def build_detector(cfg):
+    if cfg.backend == "opencv":
+        pkl_path = os.path.join(cfg.model_dir, "opencv_hog.pkl")
+        with open(pkl_path, "rb") as f:
+            config = pickle.load(f)
+        return OpenCVHOGDetector(config)
 
-    if model_config.backend == "svm":
-        if not model_config.model_dir:
-            raise ValueError("model_dir is required for svm backend")
+    elif cfg.backend in ("svm_hog", "svm_hog_sift"):
+        model_path = os.path.join(cfg.model_dir, "svm_model.pkl")
+        config_path = os.path.join(cfg.model_dir, "svm_config.pkl")
 
-        return SVMWindowDetector(
-            model_dir=model_config.model_dir,
-            clf_filename=model_config.clf_filename or "",
-            scaler_or_bundle_filename=model_config.scaler_or_bundle_filename,
-            feature_type=model_config.feature_type,
-            config_filename=model_config.config_filename,
-            default_window_size=model_config.window_size,
-            default_step_size=model_config.step_size,
-            default_min_conf=model_config.min_confidence,
-            default_nms=model_config.nms_threshold,
-        )
+        with open(model_path, "rb") as f:
+            model = pickle.load(f)
 
-    raise ValueError(f"Unknown backend: {model_config.backend}")
+        with open(config_path, "rb") as f:
+            config = pickle.load(f)
+
+        return SVMWindowDetector(model=model, config=config)
+
+    else:
+        raise ValueError(f"Unknown backend: {cfg.backend}")
