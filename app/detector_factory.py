@@ -1,6 +1,6 @@
 import os
 import pickle
-from backends.opencv_hog import OpenCVHOGDetector
+from backends.opencv_hog import ImprovedHOGDetector
 from backends.svm_window import SVMWindowDetector
 
 
@@ -13,11 +13,12 @@ def load_pkl(path: str):
 
 def build_detector(cfg):
     if cfg.backend == "opencv":
-        model_path = os.path.join(cfg.model_dir, cfg.model_file)
-        config = load_pkl(model_path)
-        return OpenCVHOGDetector(config)
+        return ImprovedHOGDetector()
 
     if cfg.backend == "svm":
+        if cfg.model_file is None or cfg.config_file is None:
+            raise ValueError("SVM backend requires model_file and config_file")
+
         model_path = os.path.join(cfg.model_dir, cfg.model_file)
         config_path = os.path.join(cfg.model_dir, cfg.config_file)
 
@@ -26,4 +27,5 @@ def build_detector(cfg):
 
         return SVMWindowDetector(model=model, config=config)
 
+    # =========================
     raise ValueError(f"Unknown backend: {cfg.backend}")
