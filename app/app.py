@@ -190,14 +190,6 @@ def apply_theme(theme: str):
                 color: var(--text-primary) !important;
             }
 
-            /* Menu item hover (FIX DARK HOVER) */
-            div[data-baseweb="menu"] > div:hover,
-            div[data-baseweb="menu"] > div:focus {
-                background-color: var(--bg-soft) !important;
-                color: var(--text-primary) !important;
-                box-shadow: none !important;
-            }
-
             /* Selected item */
             div[data-baseweb="menu"] > div[aria-selected="true"] {
                 background-color: var(--accent-soft) !important;
