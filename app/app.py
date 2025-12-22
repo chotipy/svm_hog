@@ -36,146 +36,179 @@ def apply_theme(theme: str):
     if theme == "Light":
         st.markdown(
             """
-                <style>
-                :root {
-                    --bg-main: #faf3f7;
-                    --bg-soft: #f3e7ee;
-                    --sidebar: #f6dde9;
-                    --text-primary: #3b1f2b;
-                    --text-secondary: #7a4a63;
-                    --accent: #c45aa3;
-                    --accent-soft: #d78ab6;
-                    --border: rgba(196,90,163,0.25);
-                }
+            <style>
+            :root {
+                --bg-main: #faf3f7;
+                --bg-soft: #f3e7ee;
+                --sidebar: #f6dde9;
 
-                /* ---------- App background ---------- */
-                html, body, .stApp {
-                    background: linear-gradient(135deg, var(--bg-main), var(--bg-soft));
-                    color: var(--text-primary);
-                }
+                --text-primary: #3b1f2b;
+                --text-secondary: #7a4a63;
 
-                /* ---------- Typography ---------- */
-                h1, h2, h3, h4, h5, h6, p, span, label, div {
-                    color: var(--text-primary);
-                }
-                h1, h2, h3, h4, h5, h6 {
-                    font-weight: 800;
-                }
+                --accent: #c45aa3;
+                --accent-soft: #d78ab6;
 
-                /* ---------- Sidebar ---------- */
-                [data-testid="stSidebar"] {
-                    background: linear-gradient(180deg, var(--sidebar), #f1d4e3);
-                    border-right: 1px solid var(--border);
-                }
+                --border: rgba(196,90,163,0.25);
+            }
 
-                /* ---------- DROPDOWN FIX (CRITICAL) ---------- */
-                
-                /* 1. Input Box (saat tertutup) */
-                [data-testid="stSidebar"] [data-baseweb="select"] > div {
-                    background-color: white !important;
-                    color: var(--text-primary) !important;
-                    border-radius: 10px;
-                    border: 1px solid var(--border);
-                }
-                
-                /* 2. Warna teks pilihan saat tertutup */
-                [data-testid="stSidebar"] [data-baseweb="select"] span {
-                    color: var(--text-primary) !important;
-                }
+            /* ---------- App background ---------- */
+            html, body, .stApp {
+                background: linear-gradient(135deg, var(--bg-main), var(--bg-soft));
+                color: var(--text-primary);
+            }
 
-                /* 3. Icon Panah SVG */
-                [data-baseweb="select"] svg {
-                    fill: var(--text-primary) !important;
-                }
+            /* ---------- Typography ---------- */
+            h1, h2, h3, h4, h5, h6 {
+                color: var(--text-primary) !important;
+                font-weight: 800;
+            }
 
-                /* 4. Popover Container (Jendela melayang) */
-                div[data-baseweb="popover"] {
-                    background-color: white !important;
-                    border: 1px solid var(--border);
-                }
+            p, span, label, div {
+                color: var(--text-primary);
+            }
 
-                /* 5. Menu List Container (Kunci perbaikan background hitam) */
-                div[data-baseweb="menu"],
-                div[data-baseweb="menu"] ul {
-                    background-color: white !important;
-                }
+            /* ---------- Sidebar ---------- */
+            [data-testid="stSidebar"] {
+                background: linear-gradient(180deg, var(--sidebar), #f1d4e3);
+                border-right: 1px solid var(--border);
+            }
 
-                /* 6. Item Pilihan (Option) */
-                div[data-baseweb="menu"] li,
-                div[data-baseweb="menu"] li > div {
-                    background-color: white !important;
-                    color: var(--text-primary) !important;
-                }
-                
-                /* Teks di dalam opsi */
-                div[data-baseweb="menu"] div {
-                    color: var(--text-primary) !important;
-                }
+            /* ---------- Sidebar Widgets (Dropdowns) ---------- */
+            
+            /* The main input box (collapsed) */
+            [data-testid="stSidebar"] [data-baseweb="select"] > div {
+                background-color: white !important;
+                color: var(--text-primary) !important;
+                border-radius: 10px;
+            }
 
-                /* 7. Hover State (Saat mouse di atas pilihan) */
-                div[data-baseweb="menu"] li:hover,
-                div[data-baseweb="menu"] li > div:hover {
-                    background-color: var(--bg-soft) !important;
-                    color: var(--text-primary) !important;
-                }
+            /* The SVG arrow icon */
+            [data-baseweb="select"] svg {
+                fill: var(--text-primary) !important;
+            }
+            
+            /* The floating window container */
+            div[data-baseweb="popover"] {
+                background-color: white !important;
+                border: 1px solid var(--border);
+            }
 
-                /* 8. Selected State (Pilihan aktif) */
-                div[data-baseweb="menu"] li[aria-selected="true"] > div {
-                    background-color: var(--accent-soft) !important;
-                    color: white !important;
-                }
+            /* The list container inside the popover */
+            div[data-baseweb="menu"] {
+                background-color: white !important;
+            }
 
-                /* ---------- Buttons ---------- */
-                .stButton > button {
-                    background: linear-gradient(135deg, var(--accent), var(--accent-soft));
-                    color: white !important;
-                    border-radius: 14px;
-                    font-weight: 700;
-                    box-shadow: 0 6px 18px rgba(196,90,163,0.35);
-                    border: none;
-                }
-                .stButton > button:hover {
-                    box-shadow: 0 8px 20px rgba(196,90,163,0.5);
-                }
+            /* The individual options (unselected) */
+            div[data-baseweb="menu"] > div {
+                background-color: white !important;
+                color: var(--text-primary) !important;
+            }
+            
+            /* Specific fix for the text inside options */
+            div[data-baseweb="menu"] div {
+                color: var(--text-primary) !important;
+            }
 
-                /* ---------- File uploader ---------- */
-                [data-testid="stFileUploaderDropzone"] {
-                    background: white;
-                    border: 2px dashed var(--accent);
-                    border-radius: 14px;
-                    padding: 18px;
-                }
-                [data-testid="stFileUploader"] small {
-                    color: var(--text-secondary);
-                }
+            /* Hover state */
+            div[data-baseweb="menu"] > div:hover {
+                background-color: var(--bg-soft) !important;
+                color: var(--text-primary) !important;
+            }
 
-                /* ---------- Info / warning ---------- */
-                [data-testid="stInfo"], [data-testid="stWarning"] {
-                    background: #e9e3f0;
-                    color: var(--text-primary);
-                    border-radius: 12px;
-                }
+            /* Selected item state */
+            div[data-baseweb="menu"] > div[aria-selected="true"] {
+                background-color: var(--accent-soft) !important;
+                color: white !important;
+            }
 
-                /* ---------- Metrics ---------- */
-                div[data-testid="metric-container"] {
-                    background: white;
-                    border-left: 5px solid var(--accent);
-                    border-radius: 12px;
-                    padding: 20px;
-                    box-shadow: 0 4px 14px rgba(196,90,163,0.18);
-                }
-                div[data-testid="metric-container"] label {
-                    color: var(--accent);
-                    font-weight: 700;
-                }
-                div[data-testid="metric-container"] [data-testid="stMetricValue"] {
-                    color: var(--text-primary);
-                    font-weight: 800;
-                }
-                </style>
-                """,
+            /* ---------- Buttons ---------- */
+            .stButton > button {
+                background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+                color: white !important;
+                border-radius: 14px;
+                font-weight: 700;
+                box-shadow: 0 6px 18px rgba(196,90,163,0.35);
+            }
+
+            /* ---------- File uploader ---------- */
+            [data-testid="stFileUploaderDropzone"] {
+                background: white;
+                border: 2px dashed var(--accent);
+                border-radius: 14px;
+                padding: 18px;
+            }
+
+            [data-testid="stFileUploaderDropzone"] * {
+                color: var(--text-primary);
+            }
+
+            [data-testid="stFileUploader"] small {
+                color: var(--text-secondary);
+            }
+
+            /* ---------- Info / warning ---------- */
+            [data-testid="stInfo"],
+            [data-testid="stWarning"] {
+                background: #e9e3f0;
+                color: var(--text-primary);
+                border-radius: 12px;
+            }
+
+            /* ---------- Metrics ---------- */
+            div[data-testid="metric-container"] {
+                background: white;
+                border-left: 5px solid var(--accent);
+                border-radius: 12px;
+                padding: 20px;
+                box-shadow: 0 4px 14px rgba(196,90,163,0.18);
+            }
+
+            div[data-testid="metric-container"] label {
+                color: var(--accent);
+                font-weight: 700;
+            }
+
+            div[data-testid="metric-container"] [data-testid="stMetricValue"] {
+                color: var(--text-primary);
+                font-weight: 800;
+            }
+
+            /* Dropdown container shadow reset */
+            div[data-baseweb="popover"] {
+                background: white !important;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.08) !important;
+            }
+
+            /* Menu wrapper */
+            div[data-baseweb="menu"] {
+                background: white !important;
+            }
+
+            /* Menu item base */
+            div[data-baseweb="menu"] > div {
+                background-color: white !important;
+                color: var(--text-primary) !important;
+            }
+
+            /* Menu item hover (FIX DARK HOVER) */
+            div[data-baseweb="menu"] > div:hover,
+            div[data-baseweb="menu"] > div:focus {
+                background-color: var(--bg-soft) !important;
+                color: var(--text-primary) !important;
+                box-shadow: none !important;
+            }
+
+            /* Selected item */
+            div[data-baseweb="menu"] > div[aria-selected="true"] {
+                background-color: var(--accent-soft) !important;
+                color: white !important;
+            }
+
+            </style>
+            """,
             unsafe_allow_html=True,
         )
+
     else:
         st.markdown(
             """
