@@ -343,8 +343,7 @@ def main():
     theme = st.sidebar.radio("Theme", ["Light", "Dark"], index=0)
     apply_theme(theme)
 
-    # 1. Pilih Model
-    model_choice = st.sidebar.selectbox(  # Saya ganti jadi SelectBox agar rapi
+    model_choice = st.sidebar.selectbox(
         "Detection Model",
         options=[m.value for m in ModelKey],
         index=0,
@@ -352,7 +351,6 @@ def main():
     model_key = ModelKey(model_choice)
     model_cfg = MODEL_CONFIGS[model_key]
 
-    # 2. Load Model
     try:
         detector = build_detector(model_cfg)
     except Exception as e:
@@ -361,36 +359,13 @@ def main():
 
     st.sidebar.success(f"Loaded: {model_key.value}")
 
+    current_params = model_cfg.default_params or {}
+
     st.sidebar.markdown("---")
-    st.sidebar.subheader("🎚️ Fine Tuning")
-
-    # Ambil default dari config
-    default_conf = (
-        model_cfg.default_params.get("min_confidence", 0.5)
-        if model_cfg.default_params
-        else 0.5
-    )
-    default_nms = (
-        model_cfg.default_params.get("nms_threshold", 0.3)
-        if model_cfg.default_params
-        else 0.3
-    )
-
-    conf_threshold = st.sidebar.slider(
-        "Confidence Threshold",
-        min_value=-2.0,  # SVM bisa negatif, jadi kita butuh range ini
-        max_value=3.0,
-        value=float(default_conf),
-        step=0.1,
-        help="Turunkan jika tidak ada deteksi. SVM score bisa bernilai negatif.",
-    )
-
-    nms_threshold = st.sidebar.slider(
-        "NMS Threshold (Overlap)",
-        min_value=0.0,
-        max_value=1.0,
-        value=float(default_nms),
-        step=0.05,
+    st.sidebar.info(
+        f"**Fixed Parameters:**\n\n"
+        f"Conf: {current_params.get('min_confidence', 'Auto')}\n"
+        f"NMS: {current_params.get('nms_threshold', 'Auto')}"
     )
 
     uploaded = st.file_uploader("Upload image", type=["jpg", "png", "jpeg"])
@@ -407,11 +382,8 @@ def main():
     col1.subheader("Original")
     col1.image(img_rgb, use_container_width=True)
 
-    params = {"min_confidence": conf_threshold, "nms_threshold": nms_threshold}
-
     with st.spinner("Running detection..."):
-        # Panggil detect dengan params dinamis
-        boxes, scores = detector.detect(img_bgr, params=params)
+        boxes, scores = detector.detect(img_bgr, params=current_params)
 
         vis = img_bgr.copy()
 
@@ -419,6 +391,7 @@ def main():
         for (x, y, w, h), sc in zip(boxes, scores):
             x, y, w, h = map(int, [x, y, w, h])
 
+            # Warna berbeda untuk score positif vs negatif (karena SVM)
             color = (0, 255, 0) if sc > 0 else (0, 165, 255)
 
             cv2.rectangle(vis, (x, y), (x + w, y + h), color, 2)
