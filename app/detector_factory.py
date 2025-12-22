@@ -1,6 +1,6 @@
 import os
 import pickle
-from backends.opencv_hog import ImprovedHOGDetector
+from backends.opencv_hog import OpenCVHOGDetector
 from backends.svm_window import SVMWindowDetector
 
 
@@ -13,7 +13,7 @@ def load_pkl(path: str):
 
 def build_detector(cfg):
     if cfg.backend == "opencv":
-        return ImprovedHOGDetector()
+        return OpenCVHOGDetector()
 
     if cfg.backend == "svm":
         if cfg.model_file is None or cfg.config_file is None:
@@ -27,5 +27,4 @@ def build_detector(cfg):
 
         return SVMWindowDetector(model=model, config=config)
 
-    # =========================
     raise ValueError(f"Unknown backend: {cfg.backend}")
