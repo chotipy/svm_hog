@@ -38,7 +38,7 @@ def apply_theme(theme: str):
             """
             <style>
             /* ===============================
-               LIGHT THEME (FORCE OVERRIDE)
+               LIGHT THEME
                =============================== */
 
             :root {
@@ -55,52 +55,73 @@ def apply_theme(theme: str):
                 --border: rgba(196,90,163,0.25);
             }
 
-            /* App background */
+            /* ---------- App background ---------- */
             html, body, .stApp {
                 background: linear-gradient(135deg, var(--bg-main), var(--bg-soft));
-                color: var(--text-primary) !important;
+                color: var(--text-primary);
             }
 
-            /* FORCE ALL TEXT COLOR (Streamlit override fix) */
-            .stApp, .stApp * {
-                color: var(--text-primary) !important;
-            }
-
-            /* Sidebar */
-            [data-testid="stSidebar"] {
-                background: linear-gradient(180deg, var(--sidebar), #f1d4e3) !important;
-                border-right: 1px solid var(--border);
-            }
-
-            /* Headings */
+            /* ---------- Typography ---------- */
             h1, h2, h3, h4, h5, h6 {
                 color: var(--text-primary) !important;
                 font-weight: 800;
             }
 
-            /* Markdown & text blocks */
-            p, span, div, label {
+            p, span, label, div {
+                color: var(--text-primary);
+            }
+
+            /* ---------- Sidebar ---------- */
+            [data-testid="stSidebar"] {
+                background: linear-gradient(180deg, var(--sidebar), #f1d4e3);
+                border-right: 1px solid var(--border);
+            }
+
+            /* Sidebar widgets */
+            [data-testid="stSidebar"] label,
+            [data-testid="stSidebar"] span {
                 color: var(--text-primary) !important;
             }
 
-            /* Buttons */
+            [data-testid="stSidebar"] [data-baseweb="select"] > div {
+                background: white;
+                border-radius: 10px;
+            }
+
+            /* ---------- Buttons ---------- */
             .stButton > button {
-                background: linear-gradient(135deg,
-                    var(--accent),
-                    var(--accent-soft));
+                background: linear-gradient(135deg, var(--accent), var(--accent-soft));
                 color: white !important;
                 border-radius: 14px;
                 font-weight: 700;
                 box-shadow: 0 6px 18px rgba(196,90,163,0.35);
-                transition: all 0.3s ease;
             }
 
-            .stButton > button:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 10px 26px rgba(196,90,163,0.55);
+            /* ---------- File uploader ---------- */
+            [data-testid="stFileUploaderDropzone"] {
+                background: white;
+                border: 2px dashed var(--accent);
+                border-radius: 14px;
+                padding: 18px;
             }
 
-            /* Metric cards */
+            [data-testid="stFileUploaderDropzone"] * {
+                color: var(--text-primary);
+            }
+
+            [data-testid="stFileUploader"] small {
+                color: var(--text-secondary);
+            }
+
+            /* ---------- Info / warning ---------- */
+            [data-testid="stInfo"],
+            [data-testid="stWarning"] {
+                background: #e9e3f0;
+                color: var(--text-primary);
+                border-radius: 12px;
+            }
+
+            /* ---------- Metrics ---------- */
             div[data-testid="metric-container"] {
                 background: white;
                 border-left: 5px solid var(--accent);
@@ -110,42 +131,19 @@ def apply_theme(theme: str):
             }
 
             div[data-testid="metric-container"] label {
-                color: var(--accent) !important;
+                color: var(--accent);
                 font-weight: 700;
             }
 
             div[data-testid="metric-container"] [data-testid="stMetricValue"] {
-                color: var(--text-primary) !important;
+                color: var(--text-primary);
                 font-weight: 800;
             }
-
-            [data-testid="stCaption"],
-            [data-testid="stMarkdownContainer"] p,
-            [data-testid="stFileUploader"] *,
-            [data-testid="stFileUploaderDropzone"] *,
-            [data-testid="stAlert"] * {
-                color: var(--text-primary) !important;
-            }
-
-            /* File uploader background */
-            [data-testid="stFileUploaderDropzone"] {
-                background: white !important;
-                border: 2px dashed var(--accent) !important;
-                border-radius: 14px;
-                padding: 18px;
-            }
-
-            /* Placeholder boxes */
-            [data-testid="stInfo"],
-            [data-testid="stWarning"] {
-                background: #e9e3f0 !important;
-                color: var(--text-primary) !important;
-            }
-
             </style>
             """,
             unsafe_allow_html=True,
         )
+
     else:
         st.markdown(
             """
@@ -168,6 +166,7 @@ def apply_theme(theme: str):
                 --border: rgba(215, 138, 182, 0.35);
             }
 
+            /* ---------- App background ---------- */
             html, body, .stApp {
                 background:
                     radial-gradient(circle at top right,
@@ -177,87 +176,76 @@ def apply_theme(theme: str):
                         rgba(175,66,174,0.18),
                         transparent 50%),
                     linear-gradient(135deg, var(--bg-main), var(--bg-soft));
-                color: var(--text-primary) !important;
+                color: var(--text-primary);
             }
 
-            .stApp, .stApp * {
-                color: var(--text-primary) !important;
-            }
-
-            [data-testid="stSidebar"] {
-                background: linear-gradient(180deg, var(--sidebar), #1b1220);
-                border-right: 1px solid var(--border);
-            }
-
+            /* ---------- Typography ---------- */
             h1, h2, h3, h4, h5, h6 {
                 color: var(--text-primary) !important;
                 font-weight: 800;
                 text-shadow: 0 1px 6px rgba(215,138,182,0.25);
             }
 
+            p, span, label, div {
+                color: var(--text-primary);
+            }
+
+            /* ---------- Sidebar ---------- */
+            [data-testid="stSidebar"] {
+                background: linear-gradient(180deg, var(--sidebar), #1b1220);
+                border-right: 1px solid var(--border);
+            }
+
+            [data-testid="stSidebar"] label,
+            [data-testid="stSidebar"] span {
+                color: var(--text-primary) !important;
+            }
+
+            [data-testid="stSidebar"] [data-baseweb="select"] > div {
+                background: #2a1d30;
+                border-radius: 10px;
+            }
+
+            /* ---------- Buttons ---------- */
             .stButton > button {
-                background: linear-gradient(135deg,
-                    var(--accent-strong),
-                    var(--accent));
-                color: #ffffff !important;
+                background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+                color: white !important;
                 border-radius: 14px;
                 font-weight: 700;
                 box-shadow: 0 8px 26px rgba(215,138,182,0.45);
-                transition: all 0.3s ease;
             }
 
-            .stButton > button:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 12px 40px rgba(215,138,182,0.65);
+            /* ---------- File uploader ---------- */
+            [data-testid="stFileUploaderDropzone"] {
+                background: rgba(255,255,255,0.08);
+                border: 2px dashed var(--accent);
+                border-radius: 14px;
+                padding: 18px;
             }
 
+            [data-testid="stFileUploaderDropzone"] * {
+                color: var(--text-primary);
+            }
+
+            [data-testid="stFileUploader"] small {
+                color: var(--text-secondary);
+            }
+
+            /* ---------- Info / warning ---------- */
+            [data-testid="stInfo"],
+            [data-testid="stWarning"] {
+                background: rgba(255,255,255,0.08);
+                color: var(--text-primary);
+                border-radius: 12px;
+            }
+
+            /* ---------- Metrics ---------- */
             div[data-testid="metric-container"] {
                 background: linear-gradient(135deg, #2b1d33, #3a2442);
                 border-left: 5px solid var(--accent);
                 border-radius: 12px;
                 padding: 20px;
                 box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-            }
-
-            [data-testid="stFileUploaderDropzone"] {
-                background: white !important;
-                border: 2px dashed var(--accent) !important;
-                border-radius: 14px;
-            }
-
-            /* Uploader text */
-            [data-testid="stFileUploaderDropzone"] * {
-                color: var(--text-primary) !important;
-            }
-
-            /* Helper text */
-            [data-testid="stFileUploader"] small {
-                color: var(--text-secondary) !important;
-            }
-
-            /* Info box under uploader */
-            [data-testid="stInfo"] {
-                background: #e9e3f0 !important;
-                color: var(--text-primary) !important;
-                border-radius: 12px;
-            }
-            
-            /* Radio & Selectbox text */
-            [data-testid="stSidebar"] label,
-            [data-testid="stSidebar"] span,
-            [data-testid="stSidebar"] div {
-                color: var(--text-primary) !important;
-            }
-
-            /* Selectbox background */
-            [data-testid="stSidebar"] [data-baseweb="select"] > div {
-                background-color: white !important;
-                border-radius: 10px;
-            }
-
-            /* Selected value */
-            [data-testid="stSidebar"] [data-baseweb="select"] span {
-                color: var(--text-primary) !important;
             }
             </style>
             """,
