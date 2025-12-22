@@ -118,11 +118,34 @@ def apply_theme(theme: str):
                 color: var(--text-primary) !important;
                 font-weight: 800;
             }
+
+            [data-testid="stCaption"],
+            [data-testid="stMarkdownContainer"] p,
+            [data-testid="stFileUploader"] *,
+            [data-testid="stFileUploaderDropzone"] *,
+            [data-testid="stAlert"] * {
+                color: var(--text-primary) !important;
+            }
+
+            /* File uploader background */
+            [data-testid="stFileUploaderDropzone"] {
+                background: white !important;
+                border: 2px dashed var(--accent) !important;
+                border-radius: 14px;
+                padding: 18px;
+            }
+
+            /* Placeholder boxes */
+            [data-testid="stInfo"],
+            [data-testid="stWarning"] {
+                background: #e9e3f0 !important;
+                color: var(--text-primary) !important;
+            }
+
             </style>
             """,
             unsafe_allow_html=True,
         )
-
     else:
         st.markdown(
             """
