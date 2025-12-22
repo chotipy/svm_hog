@@ -4,6 +4,8 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 import streamlit as st
+
+st.cache_resource.clear()
 from PIL import Image
 
 from model_registry import ModelKey, MODEL_CONFIGS
@@ -375,7 +377,7 @@ def main():
         boxes: List[List[float]] = []
         scores: List[float] = []
 
-        if model_key == ModelKey.OPENCV and hasattr(detector, "hog"):
+        if model_key == ModelKey.OPENCV_HOG and hasattr(detector, "hog"):
             b, w = detector.hog.detectMultiScale(
                 img_bgr,
                 winStride=(8, 8),
