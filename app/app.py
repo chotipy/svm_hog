@@ -4,8 +4,6 @@ from typing import List, Tuple
 import cv2
 import numpy as np
 import streamlit as st
-
-st.cache_resource.clear()
 from PIL import Image
 
 from model_registry import ModelKey, MODEL_CONFIGS
