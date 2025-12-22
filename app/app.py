@@ -22,9 +22,9 @@ def estimate_crowd_density(
 
     if density_ratio < 0.03:
         level = "Low"
-    elif density_ratio < 0.10:
+    elif density_ratio < 0.15:
         level = "Medium"
-    elif density_ratio > 0.10:
+    elif density_ratio > 0.2:
         level = "High"
     else:
         level = "Very High"
@@ -73,8 +73,6 @@ def apply_theme(theme: str):
                 border-right: 1px solid var(--border);
             }
 
-            /* ---------- Sidebar Widgets (Dropdowns) ---------- */
-            
             /* The main input box (collapsed) */
             [data-testid="stSidebar"] [data-baseweb="select"] > div {
                 background-color: white !important;
@@ -350,9 +348,6 @@ def main():
 
     st.sidebar.success(f"Loaded: {model_key.value}")
 
-    # ======================
-    # Upload image
-    # ======================
     uploaded = st.file_uploader("Upload image", type=["jpg", "png", "jpeg"])
     if uploaded is None:
         st.info("Upload image to run detection")
