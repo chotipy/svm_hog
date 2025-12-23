@@ -13,10 +13,6 @@ except ImportError:
 
 class SVMHOGSIFTDetector(BaseDetector):
     def __init__(self, classifier, config: dict, default_params: Optional[dict] = None):
-        """
-        Detector Hybrid: HOG (Shape) + SIFT (Texture) + SVM (Classifier)
-        Aligned with HOG_SIFT_SVM_CrowdDetection.ipynb
-        """
         if not hasattr(classifier, "predict"):
             raise TypeError("Classifier harus berupa sklearn Pipeline/SVM")
 
@@ -35,15 +31,20 @@ class SVMHOGSIFTDetector(BaseDetector):
             "transform_sqrt": bool(config.get("hog_transform_sqrt", False)),
         }
 
+        # SIFT Params
         self.sift_grid_size = tuple(config.get("sift_grid_size", (4, 8)))
         self.sift = cv2.SIFT_create()
 
         p = default_params or {}
-        self.step_size = int(p.get("step_size", config.get("step_size", 8)))
 
+        self.step_size = int(p.get("step_size", config.get("step_size", 8)))
+        self.scale_factor = float(
+            p.get("scale_factor", config.get("scale_factor", 1.2))
+        )
+        self.nms_threshold = float(
+            p.get("nms_threshold", config.get("nms_threshold", 0.3))
+        )
         self.min_confidence = float(p.get("min_confidence", 0.5))
-        self.nms_threshold = float(p.get("nms_threshold", 0.3))
-        self.scale_factor = 1.1  # Standar pyramid scale
 
         dummy_patch = np.zeros(
             (self.window_size[1], self.window_size[0], 3), dtype=np.uint8
@@ -56,9 +57,9 @@ class SVMHOGSIFTDetector(BaseDetector):
             None,
         )
 
-        print(f"[INIT] HOG+SIFT Detector Ready.")
-        print(f"       Window: {self.window_size}")
-        print(f"       Features: {feat_dim} (Expected: {expected})")
+        print(
+            f"[INIT] HOG+SIFT Detector Ready. Feature Dim: {feat_dim} (Expected: {expected})"
+        )
 
         if expected and feat_dim != expected:
             raise ValueError(
@@ -89,7 +90,6 @@ class SVMHOGSIFTDetector(BaseDetector):
         all_scores = []
         current_scale = 1.0
 
-        # --- Multi-scale Sliding Window ---
         while True:
             new_w = int(orig_w / current_scale)
             new_h = int(orig_h / current_scale)
@@ -99,7 +99,6 @@ class SVMHOGSIFTDetector(BaseDetector):
 
             resized_img = cv2.resize(gray, (new_w, new_h))
 
-            # Range sliding window standar
             ys = range(0, new_h - win_h + 1, p["step_size"])
             xs = range(0, new_w - win_w + 1, p["step_size"])
 
@@ -110,10 +109,7 @@ class SVMHOGSIFTDetector(BaseDetector):
                     if window.shape != (win_h, win_w):
                         continue
 
-                    # 1. Extract
                     feat = self._extract_features(window).reshape(1, -1)
-
-                    # 2. Predict
                     score = float(self.classifier.decision_function(feat)[0])
 
                     if score > p["min_confidence"]:
@@ -152,22 +148,23 @@ class SVMHOGSIFTDetector(BaseDetector):
         # 2. SIFT (Dense Grid)
         sift_feat = self._sift_grid_features(patch_gray)
 
-        # 3. Concatenate: HOG + SIFT
+        # 3. Concatenate: MATCHES NOTEBOOK (HOG + SIFT)
         return np.concatenate([hog_feat, sift_feat])
 
     def _sift_grid_features(self, patch_gray: np.ndarray) -> np.ndarray:
         h, w = patch_gray.shape
-        nx, ny = self.sift_grid_size  # (4, 8)
+        nx, ny = self.sift_grid_size
 
-        step_x = w // nx  # 16
-        step_y = h // ny  # 16
-        kp_size = float(min(step_x, step_y))
+        step_x = w // nx
+        step_y = h // ny
+
+        # NOTEBOOK MATCH: keypoints.append(cv2.KeyPoint(x, y, step_x))
+        kp_size = float(step_x)
 
         keypoints = []
 
-        # --- CORRECT LOOP ORDER (MATCHING NOTEBOOK) ---
-        # Notebook: for i in range(grid_size[0]): for j in range(grid_size[1]):
-
+        # --- VERIFIED LOOP ORDER: COLUMN-MAJOR ---
+        # Notebook Line: for i in range(grid_size[0]): ... for j in range(grid_size[1]):
         for x_idx in range(nx):
             for y_idx in range(ny):
 
@@ -181,7 +178,7 @@ class SVMHOGSIFTDetector(BaseDetector):
 
         _, descriptors = self.sift.compute(patch_gray, keypoints)
 
-        expected_rows = nx * ny  # 32
+        expected_rows = nx * ny
 
         if descriptors is None or descriptors.shape[0] != expected_rows:
             safe_desc = np.zeros((expected_rows, 128), dtype=np.float32)
