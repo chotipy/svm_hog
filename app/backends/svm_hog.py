@@ -33,7 +33,6 @@ class SVMHOGDetector(BaseDetector):
         self, image_bgr: np.ndarray, params: Optional[dict] = None
     ) -> Tuple[List[List[float]], List[float]]:
 
-        # Override params from UI
         p = {
             "step_size": self.step_size,
             "min_confidence": self.min_confidence,
@@ -122,7 +121,7 @@ class SVMHOGDetector(BaseDetector):
             if p["scale_factor"] <= 1.0:
                 break
 
-        # 5. Non-Maximum Suppression
+        # Non-Maximum Suppression
         if not all_boxes:
             return [], []
 

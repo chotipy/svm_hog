@@ -37,15 +37,18 @@ class SVMHOGSIFTDetector(BaseDetector):
 
         p = default_params or {}
 
-        self.step_size = int(p.get("step_size", config.get("step_size", 16)))
+        self.step_size = int(p.get("step_size", config.get("step_size", 8)))
+
         self.scale_factor = float(
-            p.get("scale_factor", config.get("scale_factor", 1.2))
+            p.get("scale_factor", config.get("scale_factor", 1.25))
         )
+
         self.nms_threshold = float(
-            p.get("nms_threshold", config.get("nms_threshold", 0.1))
+            p.get("nms_threshold", config.get("nms_threshold", 0.3))
         )
+
         self.min_confidence = float(
-            p.get("min_confidence", config.get("min_confidence", 3.8))
+            p.get("min_confidence", config.get("min_confidence", 0.5))
         )
 
         dummy_patch = np.zeros(
@@ -150,7 +153,7 @@ class SVMHOGSIFTDetector(BaseDetector):
         # 2. SIFT (Dense Grid)
         sift_feat = self._sift_grid_features(patch_gray)
 
-        # 3. Concatenate: MATCHES NOTEBOOK (HOG + SIFT)
+        # 3. Concatenate
         return np.concatenate([hog_feat, sift_feat])
 
     def _sift_grid_features(self, patch_gray: np.ndarray) -> np.ndarray:
@@ -160,13 +163,11 @@ class SVMHOGSIFTDetector(BaseDetector):
         step_x = w // nx
         step_y = h // ny
 
-        # NOTEBOOK MATCH: keypoints.append(cv2.KeyPoint(x, y, step_x))
         kp_size = float(step_x)
 
         keypoints = []
 
-        # --- VERIFIED LOOP ORDER: COLUMN-MAJOR ---
-        # Notebook Line: for i in range(grid_size[0]): ... for j in range(grid_size[1]):
+        # Loop Order: Column-Major (Sesuai Notebook)
         for x_idx in range(nx):
             for y_idx in range(ny):
 
