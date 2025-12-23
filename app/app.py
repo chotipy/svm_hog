@@ -170,11 +170,11 @@ def apply_theme(theme: str):
                 color: var(--text-primary);
                 font-weight: 800;
             }
-
-            /* Dropdown container shadow reset */
+            
             div[data-baseweb="popover"] {
                 background: white !important;
                 box-shadow: 0 8px 24px rgba(0,0,0,0.08) !important;
+                border: 1px solid var(--border);
             }
 
             /* Menu wrapper */
@@ -182,37 +182,36 @@ def apply_theme(theme: str):
                 background: white !important;
             }
 
-            /* Menu item base */
+            /* Menu item base - UNSELECTED */
             div[data-baseweb="menu"] > div {
                 background-color: white !important;
                 color: var(--text-primary) !important;
             }
 
-            /* Selected item */
-            div[data-baseweb="menu"] > div[aria-selected="true"] {
-                background-color: var(--accent-soft) !important;
-                color: white !important;
-            }
-
-            div[data-baseweb="menu"] > div[data-highlighted="true"] {
-                background-color: var(--bg-soft) !important;
-                color: var(--text-primary) !important;
-                box-shadow: none !important;
-            }
-
-            /* Text inside highlighted option */
-            div[data-baseweb="menu"] > div[data-highlighted="true"] * {
-                color: var(--text-primary) !important;
-            }
-
+            /* All text inside menu items - DEFAULT */
             div[data-baseweb="menu"] * {
-                color: #f3e7ee !important; /* light text */
+                color: var(--text-primary) !important; /* ← FIX INI */
                 font-weight: 500;
             }
 
-            /* Selected option text */
+            /* Hover state */
+            div[data-baseweb="menu"] > div[data-highlighted="true"] {
+                background-color: var(--bg-soft) !important; /* Light pink background */
+            }
+
+            /* Text saat hover */
+            div[data-baseweb="menu"] > div[data-highlighted="true"] * {
+                color: var(--text-primary) !important; /* ← Dark text saat hover */
+            }
+
+            /* Selected item */
+            div[data-baseweb="menu"] > div[aria-selected="true"] {
+                background-color: var(--accent-soft) !important; /* Pink background */
+            }
+
+            /* Text saat selected */
             div[data-baseweb="menu"] > div[aria-selected="true"] * {
-                color: white !important;
+                color: white !important; /* White text saat selected */
                 font-weight: 700;
             }
 
