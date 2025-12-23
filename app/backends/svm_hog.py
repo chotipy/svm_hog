@@ -9,14 +9,10 @@ from utils_detection import nms_xywh
 
 class SVMHOGDetector(BaseDetector):
     def __init__(self, classifier, config: dict, default_params: Optional[dict] = None):
-        """
-        Aligned with crowd_detection_hog_svm.ipynb
-        """
         self.classifier = classifier
         self.config = config
         self.default_params = default_params or {}
 
-        # Config stores size as (width, height) -> (64, 128)
         self.window_size = tuple(config.get("window_size", (64, 128)))
 
         self.hog_params = {
@@ -24,17 +20,13 @@ class SVMHOGDetector(BaseDetector):
             "pixels_per_cell": tuple(config.get("hog_pixels_per_cell", (8, 8))),
             "cells_per_block": tuple(config.get("hog_cells_per_block", (2, 2))),
             "block_norm": str(config.get("hog_block_norm", "L2-Hys")),
-            "transform_sqrt": bool(
-                config.get("hog_transform_sqrt", False)
-            ),  # CHANGED to False
+            "transform_sqrt": bool(config.get("hog_transform_sqrt", False)),
         }
 
         # Detection params
         self.step_size = int(config.get("step_size", 8))
         self.scale_factor = float(config.get("scale_factor", 1.25))
-        self.min_confidence = float(
-            config.get("min_confidence", 3.5)
-        )  # Matches config pkl
+        self.min_confidence = float(config.get("min_confidence", 3.5))
         self.nms_threshold = float(config.get("nms_threshold", 0.1))
 
     def detect(
