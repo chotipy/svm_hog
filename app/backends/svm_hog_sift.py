@@ -2,8 +2,6 @@ import cv2
 import numpy as np
 from typing import List, Tuple, Optional
 from skimage.feature import hog
-import pickle
-import matplotlib.pyplot as plt
 
 try:
     from .base import BaseDetector
