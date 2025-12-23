@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 from typing import List, Tuple, Optional
 from skimage.feature import hog
+import pickle
+import matplotlib.pyplot as plt
 
 try:
     from .base import BaseDetector
@@ -38,15 +40,15 @@ class SVMHOGSIFTDetector(BaseDetector):
         p = default_params or {}
 
         # AGGRESSIVE PARAMETERS to reduce overlapping boxes
-        self.step_size = int(p.get("step_size", config.get("step_size", 32)))
+        self.step_size = int(p.get("step_size", config.get("step_size", 16)))
         self.scale_factor = float(
-            p.get("scale_factor", config.get("scale_factor", 1.2))
+            p.get("scale_factor", config.get("scale_factor", 1.25))
         )
         self.nms_threshold = float(
-            p.get("nms_threshold", config.get("nms_threshold", 0.3))
+            p.get("nms_threshold", config.get("nms_threshold", 0.25))
         )
         self.min_confidence = float(
-            p.get("min_confidence", config.get("min_confidence", 0.5))
+            p.get("min_confidence", config.get("min_confidence", 3.5))
         )
 
         dummy_patch = np.zeros(
@@ -194,122 +196,4 @@ class SVMHOGSIFTDetector(BaseDetector):
 
 
 if __name__ == "__main__":
-    import pickle
-    import matplotlib.pyplot as plt
-
-    # GANTI PATH INI:
-    MODEL_PATH = "models_sift/hog_sift_svm_model.pkl"
-    CONFIG_PATH = "models_sift/model_config.pkl"
-    TEST_IMAGE_PATH = "data/test_images/seq_001959.jpg"
-
-    print("=" * 70)
-    print("HOG + SIFT SVM Detector - Test Mode")
-    print("=" * 70)
-
-    # Load model and config
-    print("\n[1/4] Loading model and config...")
-    with open(MODEL_PATH, "rb") as f:
-        model_pipeline = pickle.load(f)
-
-    with open(CONFIG_PATH, "rb") as f:
-        config = pickle.load(f)
-
-    print(f"✓ Model loaded from: {MODEL_PATH}")
-
-    # Initialize detector
-    print("\n[2/4] Initializing detector...")
-    detector = SVMHOGSIFTDetector(model_pipeline, config)
-
-    # Load test image
-    print("\n[3/4] Loading and processing test image...")
-    test_img = cv2.imread(TEST_IMAGE_PATH)
-
-    if test_img is None:
-        raise ValueError(f"Cannot load image from: {TEST_IMAGE_PATH}")
-
-    print(f"✓ Image loaded: {test_img.shape[1]}x{test_img.shape[0]} pixels")
-
-    # Run detection with optimized parameters
-    print("\n[4/4] Running detection...")
-    boxes, scores = detector.detect(
-        test_img, params={"step_size": 8, "min_confidence": 3.8, "nms_threshold": 0.25}
-    )
-
-    num_people = len(boxes)
-    print(f"✓ Detection complete: {num_people} people detected")
-
-    # Visualize results
-    result = test_img.copy()
-
-    for box, score in zip(boxes, scores):
-        x, y, w, h = [int(v) for v in box]
-
-        cv2.rectangle(result, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        cv2.putText(
-            result,
-            f"{score:.2f}",
-            (x, max(y - 5, 10)),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.5,
-            (0, 255, 0),
-            1,
-        )
-
-    # Calculate crowd metrics
-    h_img, w_img = result.shape[:2]
-    density = (num_people / (w_img * h_img)) * 100000
-
-    if density < 5:
-        crowd_level = "Low"
-    elif density < 15:
-        crowd_level = "Medium"
-    elif density < 30:
-        crowd_level = "High"
-    else:
-        crowd_level = "Very High"
-
-    cv2.putText(
-        result,
-        f"People: {num_people}",
-        (10, 30),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        1,
-        (0, 255, 0),
-        2,
-    )
-    cv2.putText(
-        result,
-        f"Crowd: {crowd_level}",
-        (10, 65),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        1,
-        (0, 255, 0),
-        2,
-    )
-    cv2.putText(
-        result,
-        f"Density: {density:.2f}",
-        (10, 100),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        1,
-        (0, 255, 0),
-        2,
-    )
-
-    # Display
-    plt.figure(figsize=(14, 9))
-    plt.imshow(cv2.cvtColor(result, cv2.COLOR_BGR2RGB))
-    plt.title("HOG + SIFT Crowd Detection", fontsize=16, fontweight="bold")
-    plt.axis("off")
-    plt.tight_layout()
-
-    # Save result
-    output_path = "detection_result.jpg"
-    cv2.imwrite(output_path, result)
-    print(f"\n✓ Result saved to: {output_path}")
-
-    print("\n" + "=" * 70)
-    print(f"People: {num_people} | Crowd: {crowd_level} | Density: {density:.2f}")
-    print("=" * 70)
-
-    plt.show()
+    pass
