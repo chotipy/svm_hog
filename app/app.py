@@ -170,7 +170,7 @@ def apply_theme(theme: str):
                 color: var(--text-primary);
                 font-weight: 800;
             }
-            
+
             div[data-baseweb="popover"] {
                 background: white !important;
                 box-shadow: 0 8px 24px rgba(0,0,0,0.08) !important;
@@ -339,7 +339,7 @@ def main():
 
     st.sidebar.header("⚙️ Configuration")
 
-    theme = st.sidebar.radio("Theme", ["Light", "Dark"], index=0)
+    theme = st.sidebar.radio("Theme", ["Light", "Dark"], index=1)
     apply_theme(theme)
 
     model_choice = st.sidebar.selectbox(
