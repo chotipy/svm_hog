@@ -37,15 +37,15 @@ class SVMHOGSIFTDetector(BaseDetector):
 
         p = default_params or {}
 
-        self.step_size = int(p.get("step_size", config.get("step_size", 16)))
+        self.step_size = int(p.get("step_size", config.get("step_size", 8)))
         self.scale_factor = float(
-            p.get("scale_factor", config.get("scale_factor", 1.3))
+            p.get("scale_factor", config.get("scale_factor", 1.2))
         )
         self.nms_threshold = float(
-            p.get("nms_threshold", config.get("nms_threshold", 0.3))
+            p.get("nms_threshold", config.get("nms_threshold", 0.25))
         )
         self.min_confidence = float(
-            p.get("min_confidence", config.get("min_confidence", 3.0))
+            p.get("min_confidence", config.get("min_confidence", 3.8))
         )
 
         dummy_patch = np.zeros(
