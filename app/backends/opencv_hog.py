@@ -330,7 +330,6 @@ class OpenCVHOGDetector(BaseDetector):
         processed = image.copy()
 
         if brightness != 1.0 or contrast != 1.0:
-            # Notebook logic: beta = (brightness - 1.0) * 50
             processed = cv2.convertScaleAbs(
                 processed,
                 alpha=float(contrast),
