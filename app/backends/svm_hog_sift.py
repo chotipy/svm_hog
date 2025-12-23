@@ -14,7 +14,7 @@ except ImportError:
 class SVMHOGSIFTDetector(BaseDetector):
     def __init__(self, classifier, config: dict, default_params: Optional[dict] = None):
         if not hasattr(classifier, "predict"):
-            raise TypeError("Classifier harus berupa sklearn Pipeline/SVM")
+            raise TypeError("Classifier harus berupa sklearn Pipeline atau SVM")
 
         self.classifier = classifier
         self.config = config
@@ -39,12 +39,14 @@ class SVMHOGSIFTDetector(BaseDetector):
 
         self.step_size = int(p.get("step_size", config.get("step_size", 8)))
         self.scale_factor = float(
-            p.get("scale_factor", config.get("scale_factor", 1.2))
+            p.get("scale_factor", config.get("scale_factor", 1.25))
         )
         self.nms_threshold = float(
-            p.get("nms_threshold", config.get("nms_threshold", 0.25))
+            p.get("nms_threshold", config.get("nms_threshold", 0.1))
         )
-        self.min_confidence = float(p.get("min_confidence", 3.8))
+        self.min_confidence = float(
+            p.get("min_confidence", config.get("min_confidence", 3.5))
+        )
 
         dummy_patch = np.zeros(
             (self.window_size[1], self.window_size[0], 3), dtype=np.uint8
