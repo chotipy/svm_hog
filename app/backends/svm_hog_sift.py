@@ -40,13 +40,13 @@ class SVMHOGSIFTDetector(BaseDetector):
         # AGGRESSIVE PARAMETERS to reduce overlapping boxes
         self.step_size = int(p.get("step_size", config.get("step_size", 32)))
         self.scale_factor = float(
-            p.get("scale_factor", config.get("scale_factor", 1.25))
+            p.get("scale_factor", config.get("scale_factor", 1.2))
         )
         self.nms_threshold = float(
-            p.get("nms_threshold", config.get("nms_threshold", 0.65))
+            p.get("nms_threshold", config.get("nms_threshold", 0.3))
         )
         self.min_confidence = float(
-            p.get("min_confidence", config.get("min_confidence", 5.0))
+            p.get("min_confidence", config.get("min_confidence", 0.5))
         )
 
         dummy_patch = np.zeros(
